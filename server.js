@@ -6,7 +6,7 @@
  * A Model Context Protocol server that provides Claude with access to PostgreSQL databases.
  * Supports SSL connections, database introspection, and query execution.
  *
- * @author Your Name
+ * @author Nitai Aharoni <nitaiaharoni1@gmail.com>
  * @license MIT
  */
 
