@@ -23,7 +23,7 @@ require('dotenv').config();
 const args = process.argv.slice(2);
 if (args.includes('--version') || args.includes('-v')) {
     const packageJson = require('./package.json');
-    console.log(`postgresql-mcp-server v${packageJson.version}`);
+    console.log(`${packageJson.name} v${packageJson.version}`);
     process.exit(0);
 }
 
