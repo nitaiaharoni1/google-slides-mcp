@@ -38,12 +38,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nitaiaharoni/claude-postgres-mcp.git"
+    "url": "git+https://github.com/nitaiaharoni1/claude-postgres-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/nitaiaharoni/claude-postgres-mcp/issues"
+    "url": "https://github.com/nitaiaharoni1/claude-postgres-mcp/issues"
   },
-  "homepage": "https://github.com/nitaiaharoni/claude-postgres-mcp#readme",
+  "homepage": "https://github.com/nitaiaharoni1/claude-postgres-mcp#readme",
   "files": [
     "server.js",
     "test.js",
