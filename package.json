@@ -1,0 +1,47 @@
+{
+  "name": "postgresql-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for PostgreSQL database access",
+  "main": "server.js",
+  "bin": {
+    "postgresql-mcp-server": "./server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "postgresql",
+    "claude",
+    "ai",
+    "database",
+    "sql"
+  ],
+  "author": "Nitai Aharoni <nitaiaharoni1@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/postgresql-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/postgresql-mcp-server/issues"
+  },
+  "homepage": "https://github.com/yourusername/postgresql-mcp-server#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^16.5.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/pg": "^8.15.2",
+    "nodemon": "^3.0.0",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
