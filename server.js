@@ -86,9 +86,11 @@ if (!process.env.DATABASE_URL) {
     process.exit(1);
 }
 
-// Handle SSL configuration for cloud providers
-if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
-    console.warn('⚠️  TLS certificate verification is disabled. Not recommended for production.');
+// Handle SSL for cloud providers globally
+const isDigitalOceanDB = process.env.DATABASE_URL.includes('ondigitalocean.com');
+if (isDigitalOceanDB && !process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    console.error('🔒 SSL verification disabled for DigitalOcean cloud database');
 }
 
 const server = new Server(SERVER_CONFIG, {
@@ -106,14 +108,30 @@ const createDatabaseClient = () => {
         max: 1,                         // Single connection for MCP
     };
 
-    // Configure SSL for cloud providers
-    if (process.env.DATABASE_URL.includes('sslmode=require') ||
-        process.env.DATABASE_URL.includes('digitalocean.com') ||
-        process.env.DATABASE_URL.includes('amazonaws.com')) {
+    // Configure SSL for cloud providers - automatically handle self-signed certificates
+    const isCloudProvider = process.env.DATABASE_URL.includes('digitalocean.com') ||
+                           process.env.DATABASE_URL.includes('ondigitalocean.com') ||
+                           process.env.DATABASE_URL.includes('amazonaws.com') ||
+                           process.env.DATABASE_URL.includes('rds.amazonaws.com') ||
+                           process.env.DATABASE_URL.includes('googleapis.com') ||
+                           process.env.DATABASE_URL.includes('azure.com') ||
+                           process.env.DATABASE_URL.includes('heroku.com') ||
+                           process.env.DATABASE_URL.includes('sslmode=require');
+
+    if (isCloudProvider) {
         config.ssl = {
-            rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
+            rejectUnauthorized: false, // Allow self-signed certificates for cloud providers
+            checkServerIdentity: () => undefined, // Skip hostname verification
+            requestCert: true,
+            agent: false
+        };
+        console.error('🔒 SSL enabled with cloud provider certificate handling');
+    } else if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
+        config.ssl = {
+            rejectUnauthorized: false,
             checkServerIdentity: () => undefined
         };
+        console.error('⚠️  SSL verification disabled via NODE_TLS_REJECT_UNAUTHORIZED');
     }
 
     return new Client(config);
@@ -142,7 +160,8 @@ const connectDatabase = async () => {
 
         // Provide helpful error messages
         if (error.message.includes('self-signed certificate')) {
-            console.error('💡 Try setting NODE_TLS_REJECT_UNAUTHORIZED=0 for development');
+            console.error('💡 SSL certificate issue - this should be automatically handled for cloud providers');
+            console.error('💡 If using a local database, try setting NODE_TLS_REJECT_UNAUTHORIZED=0');
         }
         if (error.message.includes('no pg_hba.conf entry')) {
             console.error('💡 Check if SSL is required for your database connection');
