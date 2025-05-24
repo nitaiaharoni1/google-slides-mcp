@@ -43,13 +43,13 @@ A Model Context Protocol (MCP) server that provides Claude with direct access to
    ```
 
 5. **Configure Claude Desktop:**
-
+   
    Edit your Claude Desktop configuration file:
-
+   
    **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-
+   
    **Linux:** `~/.config/Claude/claude_desktop_config.json`
-
+   
    **Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
 
    ```json
@@ -93,19 +93,16 @@ DATABASE_URL="postgresql://username:password@hostname:25060/database?sslmode=req
 Once configured, you can interact with your database through Claude:
 
 ### List Tables
-
 ```
 "List all tables in my database"
 ```
 
 ### Describe Schema
-
 ```
 "Describe the structure of the users table"
 ```
 
 ### Query Data
-
 ```
 "Show me the first 10 rows from the orders table"
 "How many users are registered?"
@@ -113,7 +110,6 @@ Once configured, you can interact with your database through Claude:
 ```
 
 ### Data Analysis
-
 ```
 "Analyze sales trends by month"
 "Find users who haven't logged in recently"
@@ -140,15 +136,30 @@ The MCP server provides three main tools:
 
 ### SSL Certificate Issues
 
-If you encounter SSL certificate errors with cloud providers:
+Cloud providers like DigitalOcean, AWS RDS often use self-signed certificates. If you encounter SSL certificate errors:
 
 ```bash
-# Option 1: Accept self-signed certificates (development only)
+# For development/testing - disable certificate verification
 export NODE_TLS_REJECT_UNAUTHORIZED=0
+npm test
 
-# Option 2: Use connection string with SSL mode
-DATABASE_URL="postgresql://username:password@host:port/db?sslmode=require"
+# Or run the server with SSL verification disabled
+NODE_TLS_REJECT_UNAUTHORIZED=0 node server.js
 ```
+
+**Production SSL Configuration:**
+```bash
+# Always use SSL in production
+DATABASE_URL="postgresql://username:password@host:port/db?sslmode=require"
+
+# For cloud providers, the server automatically handles certificate issues
+# No additional configuration needed
+```
+
+**Common SSL errors and solutions:**
+- `self-signed certificate in certificate chain` - Normal for cloud providers, server handles this
+- `no pg_hba.conf entry for host` with `no encryption` - Add `?sslmode=require` to connection string
+- Connection timeout - Check firewall settings and database accessibility
 
 ### Connection Failures
 
