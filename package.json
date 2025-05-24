@@ -15,6 +15,9 @@
     "prepublishOnly": "npm test",
     "postinstall": "echo '\n🎉 PostgreSQL MCP Server installed successfully!\n📖 See README for configuration: https://github.com/nitaiaharoni/postgresql-mcp-server#readme\n'",
     "release": "node release.js",
+    "release:patch": "node release.js patch --yes",
+    "release:minor": "node release.js minor --yes",
+    "release:major": "node release.js major --yes",
     "release:dry": "node release.js --dry-run",
     "version:check": "echo \"Current version: $(node -p 'require(\"./package.json\").version')\""
   },
