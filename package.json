@@ -1,6 +1,6 @@
 {
   "name": "claude-postgres-mcp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Model Context Protocol server for PostgreSQL database access with comprehensive introspection and analysis tools",
   "main": "server.js",
   "bin": {
