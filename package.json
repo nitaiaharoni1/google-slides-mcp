@@ -4,7 +4,7 @@
   "description": "Model Context Protocol server for PostgreSQL database access with comprehensive introspection and analysis tools",
   "main": "server.js",
   "bin": {
-    "claude-postgres-mcp": "./server.js"
+    "claude-postgres-mcp": "server.js"
   },
   "scripts": {
     "start": "node server.js",
@@ -38,7 +38,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nitaiaharoni/claude-postgres-mcp.git"
+    "url": "git+https://github.com/nitaiaharoni/claude-postgres-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/nitaiaharoni/claude-postgres-mcp/issues"
