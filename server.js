@@ -32,27 +32,27 @@ if (args.includes('--help') || args.includes('-h')) {
 PostgreSQL MCP Server v${require('./package.json').version}
 
 Usage:
-  postgresql-mcp-server [options]
+  claude-postgres-mcp [options]
 
 Options:
   --version, -v         Show version number
   --help, -h           Show this help message
   --test               Test database connection (requires DATABASE_URL)
-  --configure   Automatically configure Claude Desktop
+  --configure          Automatically configure Claude Desktop
   --find-config        Show Claude Desktop config file location
 
 Environment Variables:
   DATABASE_URL          PostgreSQL connection string (required)
 
 Examples:
-  postgresql-mcp-server
-  DATABASE_URL="postgresql://user:pass@host:5432/db" postgresql-mcp-server
-  postgresql-mcp-server --test
-  postgresql-mcp-server --configure
-  postgresql-mcp-server --find-config
+  claude-postgres-mcp
+  DATABASE_URL="postgresql://user:pass@host:5432/db" claude-postgres-mcp
+  claude-postgres-mcp --test
+  claude-postgres-mcp --configure
+  claude-postgres-mcp --find-config
 
 For more information, visit:
-https://github.com/nitaiaharoni/postgresql-mcp-server
+https://github.com/nitaiaharoni/claude-postgres-mcp
 `);
     process.exit(0);
 }
@@ -1027,7 +1027,7 @@ function configureClaudeDesktop() {
         
         // Add or update the postgresql MCP server configuration
         config.mcpServers.postgresql = {
-            command: "postgresql-mcp-server",
+            command: "claude-postgres-mcp",
             env: {
                 DATABASE_URL: databaseUrl
             }
@@ -1049,7 +1049,7 @@ function configureClaudeDesktop() {
             console.log('2. Start chatting with Claude - it now has access to your PostgreSQL database!');
         }
         
-        console.log('\n💡 Test the connection with: postgresql-mcp-server --test');
+        console.log('\n💡 Test the connection with: claude-postgres-mcp --test');
         
     } catch (error) {
         console.error('❌ Failed to configure Claude Desktop:', error.message);
@@ -1059,7 +1059,7 @@ function configureClaudeDesktop() {
         console.error(JSON.stringify({
             mcpServers: {
                 postgresql: {
-                    command: "postgresql-mcp-server",
+                    command: "claude-postgres-mcp",
                     env: {
                         DATABASE_URL: "postgresql://username:password@host:port/database?sslmode=require"
                     }
@@ -1120,7 +1120,7 @@ function showConfigLocation() {
         const exampleConfig = {
             mcpServers: {
                 postgresql: {
-                    command: "postgresql-mcp-server",
+                    command: "claude-postgres-mcp",
                     env: {
                         DATABASE_URL: process.env.DATABASE_URL || "postgresql://username:password@host:port/database?sslmode=require"
                     }
@@ -1133,8 +1133,8 @@ function showConfigLocation() {
         console.log('```');
         
         console.log('\n💡 Alternative commands:');
-        console.log('   Automatic config: postgresql-mcp-server --configure');
-        console.log('   Test connection:  postgresql-mcp-server --test');
+        console.log('   Automatic config: claude-postgres-mcp --configure');
+        console.log('   Test connection:  claude-postgres-mcp --test');
         
         if (!process.env.DATABASE_URL) {
             console.log('\n⚠️  Don\'t forget to set your DATABASE_URL environment variable:');

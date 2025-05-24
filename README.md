@@ -6,18 +6,18 @@ A Model Context Protocol (MCP) server that provides Claude with direct access to
 
 ```bash
 # Install globally (recommended)
-npm install -g postgresql-mcp-server
+npm install -g claude-postgres-mcp
 
 # Automatically configure Claude Desktop
-postgresql-mcp-server --configure
+claude-postgres-mcp --configure
 
 # Or use without installing
-npx postgresql-mcp-server --configure
+npx claude-postgres-mcp --configure
 ```
 
 That's it! The server will automatically detect your OS and configure Claude Desktop for you.
 
-**Prefer manual configuration?** Use `postgresql-mcp-server --find-config` to locate your Claude Desktop config file and get setup instructions.
+**Prefer manual configuration?** Use `claude-postgres-mcp --find-config` to locate your Claude Desktop config file and get setup instructions.
 
 Then configure Claude Desktop (see [Installation](#installation) for details).
 
@@ -48,12 +48,12 @@ Choose one of the installation methods below:
 
 1. **Install globally via npm:**
    ```bash
-   npm install -g postgresql-mcp-server
+   npm install -g claude-postgres-mcp
    ```
 
 2. **Automatically configure Claude Desktop:**
    ```bash
-   postgresql-mcp-server --configure
+   claude-postgres-mcp --configure
    ```
    
    This command will:
@@ -73,7 +73,7 @@ Choose one of the installation methods below:
 
 ```bash
 # Configure Claude Desktop without installing
-npx postgresql-mcp-server --configure
+npx claude-postgres-mcp --configure
 ```
 
 #### Method 3: Manual Configuration
@@ -82,12 +82,12 @@ If you prefer to configure manually or the automatic configuration doesn't work:
 
 1. **Install the package:**
    ```bash
-   npm install -g postgresql-mcp-server
+   npm install -g claude-postgres-mcp
    ```
 
 2. **Find your Claude Desktop config file location:**
    ```bash
-   postgresql-mcp-server --find-config
+   claude-postgres-mcp --find-config
    ```
    
    This will show you:
@@ -104,7 +104,7 @@ If you prefer to configure manually or the automatic configuration doesn't work:
    {
      "mcpServers": {
        "postgresql": {
-         "command": "postgresql-mcp-server",
+         "command": "claude-postgres-mcp",
          "env": {
            "DATABASE_URL": "postgresql://username:password@host:port/database?sslmode=require"
          }
@@ -125,7 +125,7 @@ If you prefer to configure manually or the automatic configuration doesn't work:
 
 2. **Install locally:**
    ```bash
-   npm install postgresql-mcp-server
+   npm install claude-postgres-mcp
    ```
 
 3. **Configure Claude Desktop:**
@@ -135,7 +135,7 @@ If you prefer to configure manually or the automatic configuration doesn't work:
      "mcpServers": {
        "postgresql": {
          "command": "node",
-         "args": ["/path/to/my-mcp-servers/node_modules/postgresql-mcp-server/server.js"],
+         "args": ["/path/to/my-mcp-servers/node_modules/claude-postgres-mcp/server.js"],
          "env": {
            "DATABASE_URL": "postgresql://username:password@host:port/database?sslmode=require"
          }
@@ -147,7 +147,7 @@ If you prefer to configure manually or the automatic configuration doesn't work:
 4. **Test the connection:**
    ```bash
    cd my-mcp-servers
-   npx postgresql-mcp-server --test
+   npx claude-postgres-mcp --test
    ```
 
 #### Alternative: Manual Installation (Development)
@@ -156,8 +156,8 @@ If you want to modify the code or contribute:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nitaiaharoni/postgresql-mcp-server.git
-   cd postgresql-mcp-server
+   git clone https://github.com/nitaiaharoni/claude-postgres-mcp.git
+   cd claude-postgres-mcp
    ```
 
 2. **Install dependencies:**
@@ -187,7 +187,7 @@ If you want to modify the code or contribute:
      "mcpServers": {
        "postgresql": {
          "command": "node",
-         "args": ["/path/to/postgresql-mcp-server/server.js"],
+         "args": ["/path/to/claude-postgres-mcp/server.js"],
          "env": {
            "DATABASE_URL": "postgresql://username:password@host:port/database?sslmode=require"
          }
@@ -226,19 +226,19 @@ Before using with Claude, you may want to:
 
 ```bash
 # Automatically configure Claude Desktop
-postgresql-mcp-server --configure
+claude-postgres-mcp --configure
 
 # Find Claude Desktop config file location for manual setup
-postgresql-mcp-server --find-config
+claude-postgres-mcp --find-config
 
 # Test your database connection  
-postgresql-mcp-server --test
+claude-postgres-mcp --test
 
 # Check version
-postgresql-mcp-server --version
+claude-postgres-mcp --version
 
 # Get help
-postgresql-mcp-server --help
+claude-postgres-mcp --help
 ```
 
 ### Basic Database Exploration
@@ -357,7 +357,7 @@ DATABASE_URL="postgresql://username:password@host:port/db?sslmode=require"
 ### Project Structure
 
 ```
-postgresql-mcp-server/
+claude-postgres-mcp/
 ├── server.js           # Main MCP server implementation
 ├── test.js            # Comprehensive test suite
 ├── package.json        # Node.js dependencies and scripts

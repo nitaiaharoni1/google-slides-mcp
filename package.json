@@ -1,10 +1,10 @@
 {
-  "name": "postgresql-mcp-server",
+  "name": "claude-postgres-mcp",
   "version": "1.0.1",
   "description": "Model Context Protocol server for PostgreSQL database access with comprehensive introspection and analysis tools",
   "main": "server.js",
   "bin": {
-    "postgresql-mcp-server": "./server.js"
+    "claude-postgres-mcp": "./server.js"
   },
   "scripts": {
     "start": "node server.js",
@@ -13,7 +13,7 @@
     "configure": "node server.js --configure",
     "find-config": "node server.js --find-config",
     "prepublishOnly": "npm test",
-    "postinstall": "echo '\n🎉 PostgreSQL MCP Server installed successfully!\n📖 See README for configuration: https://github.com/nitaiaharoni/postgresql-mcp-server#readme\n'",
+    "postinstall": "echo '\n🎉 Claude PostgreSQL MCP Server installed successfully!\n📖 See README for configuration: https://github.com/nitaiaharoni/claude-postgres-mcp#readme\n'",
     "release": "node release.js",
     "release:patch": "node release.js patch --yes",
     "release:minor": "node release.js minor --yes",
@@ -38,12 +38,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nitaiaharoni/postgresql-mcp-server.git"
+    "url": "https://github.com/nitaiaharoni/claude-postgres-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/nitaiaharoni/postgresql-mcp-server/issues"
+    "url": "https://github.com/nitaiaharoni/claude-postgres-mcp/issues"
   },
-  "homepage": "https://github.com/nitaiaharoni/postgresql-mcp-server#readme",
+  "homepage": "https://github.com/nitaiaharoni/claude-postgres-mcp#readme",
   "files": [
     "server.js",
     "test.js",
