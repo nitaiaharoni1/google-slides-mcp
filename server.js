@@ -14,7 +14,64 @@ const {Server} = require('@modelcontextprotocol/sdk/server/index.js');
 const {StdioServerTransport} = require('@modelcontextprotocol/sdk/server/stdio.js');
 const {CallToolRequestSchema, ListToolsRequestSchema} = require('@modelcontextprotocol/sdk/types.js');
 const {Client} = require('pg');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 require('dotenv').config();
+
+// Handle CLI arguments
+const args = process.argv.slice(2);
+if (args.includes('--version') || args.includes('-v')) {
+    const packageJson = require('./package.json');
+    console.log(`postgresql-mcp-server v${packageJson.version}`);
+    process.exit(0);
+}
+
+if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
+PostgreSQL MCP Server v${require('./package.json').version}
+
+Usage:
+  postgresql-mcp-server [options]
+
+Options:
+  --version, -v         Show version number
+  --help, -h           Show this help message
+  --test               Test database connection (requires DATABASE_URL)
+  --configure   Automatically configure Claude Desktop
+  --find-config        Show Claude Desktop config file location
+
+Environment Variables:
+  DATABASE_URL          PostgreSQL connection string (required)
+
+Examples:
+  postgresql-mcp-server
+  DATABASE_URL="postgresql://user:pass@host:5432/db" postgresql-mcp-server
+  postgresql-mcp-server --test
+  postgresql-mcp-server --configure
+  postgresql-mcp-server --find-config
+
+For more information, visit:
+https://github.com/nitaiaharoni/postgresql-mcp-server
+`);
+    process.exit(0);
+}
+
+if (args.includes('--test')) {
+    console.log('🧪 Testing database connection...');
+    require('./test.js');
+    return;
+}
+
+if (args.includes('--configure')) {
+    configureClaudeDesktop();
+    return;
+}
+
+if (args.includes('--find-config')) {
+    showConfigLocation();
+    return;
+}
 
 // Server configuration
 const SERVER_CONFIG = {
@@ -155,6 +212,132 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                         },
                     },
                     required: ['table_name'],
+                },
+            },
+            {
+                name: 'list_schemas',
+                description: 'List all schemas in the database',
+                inputSchema: {
+                    type: 'object',
+                    properties: {},
+                },
+            },
+            {
+                name: 'get_table_stats',
+                description: 'Get statistics for tables including row counts, sizes, and last vacuum/analyze times',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        schema_name: {
+                            type: 'string',
+                            description: 'Schema name (defaults to public)',
+                            default: 'public',
+                        },
+                    },
+                },
+            },
+            {
+                name: 'list_indexes',
+                description: 'List all indexes for a specific table or all tables',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        table_name: {
+                            type: 'string',
+                            description: 'Name of the table (optional - if not provided, lists all indexes)',
+                        },
+                    },
+                },
+            },
+            {
+                name: 'get_foreign_keys',
+                description: 'List foreign key relationships for a specific table or all tables',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        table_name: {
+                            type: 'string',
+                            description: 'Name of the table (optional - if not provided, lists all foreign keys)',
+                        },
+                    },
+                },
+            },
+            {
+                name: 'explain_query',
+                description: 'Get the execution plan for a SQL query without executing it',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        query: {
+                            type: 'string',
+                            description: 'SQL query to explain (SELECT statements only)',
+                        },
+                        analyze: {
+                            type: 'boolean',
+                            description: 'Whether to include actual execution statistics (WARNING: this executes the query)',
+                            default: false,
+                        },
+                    },
+                    required: ['query'],
+                },
+            },
+            {
+                name: 'list_functions',
+                description: 'List stored functions and procedures in the database',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        schema_name: {
+                            type: 'string',
+                            description: 'Schema name (defaults to public)',
+                            default: 'public',
+                        },
+                    },
+                },
+            },
+            {
+                name: 'get_database_info',
+                description: 'Get general database information including size, version, and settings',
+                inputSchema: {
+                    type: 'object',
+                    properties: {},
+                },
+            },
+            {
+                name: 'analyze_column',
+                description: 'Get statistical analysis of a specific column including distribution, nulls, and unique values',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        table_name: {
+                            type: 'string',
+                            description: 'Name of the table',
+                        },
+                        column_name: {
+                            type: 'string',
+                            description: 'Name of the column to analyze',
+                        },
+                    },
+                    required: ['table_name', 'column_name'],
+                },
+            },
+            {
+                name: 'search_tables',
+                description: 'Search for tables and columns by name pattern',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        pattern: {
+                            type: 'string',
+                            description: 'Search pattern (supports SQL LIKE patterns with % and _)',
+                        },
+                        search_columns: {
+                            type: 'boolean',
+                            description: 'Whether to also search column names',
+                            default: false,
+                        },
+                    },
+                    required: ['pattern'],
                 },
             },
         ],
@@ -335,6 +518,429 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 };
             }
 
+            case 'list_schemas': {
+                console.error('📋 Listing database schemas...');
+
+                const result = await client.query(`
+                    SELECT schema_name,
+                           schema_owner,
+                           CASE 
+                               WHEN schema_name IN ('information_schema', 'pg_catalog', 'pg_toast') 
+                               THEN 'system'
+                               ELSE 'user'
+                           END as schema_type
+                    FROM information_schema.schemata
+                    ORDER BY schema_type, schema_name;
+                `);
+
+                console.error(`✅ Found ${result.rowCount} schemas`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result.rows, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'get_table_stats': {
+                const schemaName = args.schema_name || 'public';
+                console.error(`📊 Getting table statistics for schema: ${schemaName}`);
+
+                const result = await client.query(`
+                    SELECT 
+                        schemaname,
+                        tablename,
+                        attname,
+                        n_distinct,
+                        most_common_vals,
+                        most_common_freqs,
+                        histogram_bounds,
+                        correlation,
+                        most_common_elems,
+                        most_common_elem_freqs,
+                        elem_count_histogram
+                    FROM pg_stats 
+                    WHERE schemaname = $1
+                    ORDER BY tablename, attname;
+                `, [schemaName]);
+
+                // Also get table sizes
+                const sizeResult = await client.query(`
+                    SELECT 
+                        t.table_name,
+                        pg_size_pretty(pg_total_relation_size(c.oid)) AS size,
+                        pg_total_relation_size(c.oid) AS size_bytes,
+                        (SELECT reltuples::bigint FROM pg_class WHERE oid = c.oid) AS estimated_rows
+                    FROM information_schema.tables t
+                    LEFT JOIN pg_class c ON c.relname = t.table_name
+                    LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+                    WHERE t.table_schema = $1 
+                      AND t.table_type = 'BASE TABLE'
+                      AND n.nspname = $1
+                    ORDER BY pg_total_relation_size(c.oid) DESC;
+                `, [schemaName]);
+
+                console.error(`✅ Found statistics for ${sizeResult.rowCount} tables`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify({
+                                schema: schemaName,
+                                table_sizes: sizeResult.rows,
+                                column_statistics: result.rows
+                            }, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'list_indexes': {
+                const tableName = args.table_name;
+                console.error(tableName ? `📋 Listing indexes for table: ${tableName}` : '📋 Listing all indexes...');
+
+                let query = `
+                    SELECT 
+                        schemaname,
+                        tablename,
+                        indexname,
+                        indexdef,
+                        CASE WHEN indisunique THEN 'UNIQUE' ELSE 'NON-UNIQUE' END as index_type,
+                        CASE WHEN indisprimary THEN 'PRIMARY KEY' 
+                             WHEN indisunique THEN 'UNIQUE'
+                             ELSE 'INDEX' END as constraint_type
+                    FROM pg_indexes 
+                    LEFT JOIN pg_class c ON c.relname = indexname
+                    LEFT JOIN pg_index i ON i.indexrelid = c.oid
+                `;
+                
+                const params = [];
+                if (tableName) {
+                    query += ` WHERE tablename = $1`;
+                    params.push(tableName);
+                }
+                
+                query += ` ORDER BY schemaname, tablename, indexname;`;
+
+                const result = await client.query(query, params);
+
+                console.error(`✅ Found ${result.rowCount} indexes`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result.rows, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'get_foreign_keys': {
+                const tableName = args.table_name;
+                console.error(tableName ? `🔗 Getting foreign keys for table: ${tableName}` : '🔗 Getting all foreign keys...');
+
+                let query = `
+                    SELECT 
+                        tc.table_schema,
+                        tc.table_name,
+                        kcu.column_name,
+                        ccu.table_schema AS foreign_table_schema,
+                        ccu.table_name AS foreign_table_name,
+                        ccu.column_name AS foreign_column_name,
+                        tc.constraint_name,
+                        rc.update_rule,
+                        rc.delete_rule
+                    FROM information_schema.table_constraints AS tc 
+                    JOIN information_schema.key_column_usage AS kcu
+                        ON tc.constraint_name = kcu.constraint_name
+                        AND tc.table_schema = kcu.table_schema
+                    JOIN information_schema.constraint_column_usage AS ccu
+                        ON ccu.constraint_name = tc.constraint_name
+                        AND ccu.table_schema = tc.table_schema
+                    JOIN information_schema.referential_constraints AS rc
+                        ON tc.constraint_name = rc.constraint_name
+                        AND tc.table_schema = rc.constraint_schema
+                    WHERE tc.constraint_type = 'FOREIGN KEY'
+                `;
+                
+                const params = [];
+                if (tableName) {
+                    query += ` AND tc.table_name = $1`;
+                    params.push(tableName);
+                }
+                
+                query += ` ORDER BY tc.table_schema, tc.table_name, kcu.column_name;`;
+
+                const result = await client.query(query, params);
+
+                console.error(`✅ Found ${result.rowCount} foreign key relationships`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result.rows, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'explain_query': {
+                const query = validateQuery(args.query);
+                const analyze = args.analyze || false;
+                
+                console.error(`🔍 Explaining query${analyze ? ' with analysis' : ''}: ${query.substring(0, 100)}${query.length > 100 ? '...' : ''}`);
+
+                const explainQuery = `EXPLAIN ${analyze ? 'ANALYZE ' : ''}${query}`;
+                const result = await client.query(explainQuery);
+
+                console.error(`✅ Query plan generated`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify({
+                                query: query,
+                                execution_plan: result.rows.map(row => row['QUERY PLAN']),
+                                analyzed: analyze
+                            }, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'list_functions': {
+                const schemaName = args.schema_name || 'public';
+                console.error(`📋 Listing functions in schema: ${schemaName}`);
+
+                const result = await client.query(`
+                    SELECT 
+                        p.proname as function_name,
+                        pg_catalog.pg_get_function_result(p.oid) as return_type,
+                        pg_catalog.pg_get_function_arguments(p.oid) as arguments,
+                        CASE p.prokind 
+                            WHEN 'f' THEN 'function'
+                            WHEN 'p' THEN 'procedure'
+                            WHEN 'a' THEN 'aggregate'
+                            WHEN 'w' THEN 'window'
+                            ELSE 'unknown'
+                        END as function_type,
+                        p.provolatile as volatility,
+                        obj_description(p.oid, 'pg_proc') as description
+                    FROM pg_proc p
+                    LEFT JOIN pg_namespace n ON n.oid = p.pronamespace
+                    WHERE n.nspname = $1
+                    ORDER BY function_type, function_name;
+                `, [schemaName]);
+
+                console.error(`✅ Found ${result.rowCount} functions`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result.rows, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'get_database_info': {
+                console.error('🔍 Getting database information...');
+
+                const queries = {
+                    version: "SELECT version() as version",
+                    size: "SELECT pg_size_pretty(pg_database_size(current_database())) as database_size",
+                    settings: `
+                        SELECT name, setting, unit, short_desc 
+                        FROM pg_settings 
+                        WHERE name IN (
+                            'max_connections', 'shared_buffers', 'effective_cache_size',
+                            'maintenance_work_mem', 'checkpoint_completion_target',
+                            'wal_buffers', 'default_statistics_target'
+                        )
+                        ORDER BY name
+                    `,
+                    activity: `
+                        SELECT 
+                            state,
+                            COUNT(*) as connection_count
+                        FROM pg_stat_activity 
+                        WHERE pid != pg_backend_pid()
+                        GROUP BY state
+                        ORDER BY connection_count DESC
+                    `
+                };
+
+                const results = {};
+                for (const [key, query] of Object.entries(queries)) {
+                    try {
+                        const result = await client.query(query);
+                        results[key] = result.rows;
+                    } catch (error) {
+                        results[key] = { error: error.message };
+                    }
+                }
+
+                console.error(`✅ Database information collected`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(results, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'analyze_column': {
+                const tableName = args.table_name;
+                const columnName = args.column_name;
+                console.error(`📊 Analyzing column: ${tableName}.${columnName}`);
+
+                // Get column basic info
+                const columnInfo = await client.query(`
+                    SELECT data_type, is_nullable, column_default
+                    FROM information_schema.columns
+                    WHERE table_name = $1 AND column_name = $2 AND table_schema = 'public'
+                `, [tableName, columnName]);
+
+                if (columnInfo.rows.length === 0) {
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: `Column '${columnName}' not found in table '${tableName}'.`,
+                            },
+                        ],
+                        isError: true,
+                    };
+                }
+
+                // Validate table and column names to prevent SQL injection
+                const validNamePattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+                if (!validNamePattern.test(tableName) || !validNamePattern.test(columnName)) {
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: 'Invalid table or column name. Names must contain only letters, numbers, and underscores.',
+                            },
+                        ],
+                        isError: true,
+                    };
+                }
+
+                // Get column statistics using pg_format to safely build the query
+                const statsQuery = `
+                    SELECT 
+                        COUNT(*) as total_rows,
+                        COUNT("${columnName}") as non_null_count,
+                        COUNT(*) - COUNT("${columnName}") as null_count,
+                        COUNT(DISTINCT "${columnName}") as distinct_count,
+                        MIN("${columnName}"::text) as min_value,
+                        MAX("${columnName}"::text) as max_value
+                    FROM "${tableName}"
+                `;
+
+                const commonValuesQuery = `
+                    SELECT "${columnName}" as value, COUNT(*) as frequency
+                    FROM "${tableName}"
+                    WHERE "${columnName}" IS NOT NULL
+                    GROUP BY "${columnName}"
+                    ORDER BY frequency DESC
+                    LIMIT 10
+                `;
+
+                const [stats, commonValues] = await Promise.all([
+                    client.query(statsQuery),
+                    client.query(commonValuesQuery)
+                ]);
+
+                console.error(`✅ Column analysis completed`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify({
+                                table_name: tableName,
+                                column_name: columnName,
+                                column_info: columnInfo.rows[0],
+                                statistics: stats.rows[0],
+                                most_common_values: commonValues.rows
+                            }, null, 2),
+                        },
+                    ],
+                };
+            }
+
+            case 'search_tables': {
+                const pattern = args.pattern;
+                const searchColumns = args.search_columns || false;
+                console.error(`🔍 Searching for tables with pattern: ${pattern}`);
+
+                let query = `
+                    SELECT 'table' as object_type, 
+                           schemaname as schema_name,
+                           tablename as object_name,
+                           NULL as column_name
+                    FROM pg_tables
+                    WHERE schemaname = 'public' 
+                      AND tablename LIKE $1
+                    
+                    UNION ALL
+                    
+                    SELECT 'view' as object_type,
+                           schemaname as schema_name, 
+                           viewname as object_name,
+                           NULL as column_name
+                    FROM pg_views
+                    WHERE schemaname = 'public'
+                      AND viewname LIKE $1
+                `;
+
+                if (searchColumns) {
+                    query += `
+                        UNION ALL
+                        
+                        SELECT 'column' as object_type,
+                               table_schema as schema_name,
+                               table_name as object_name,
+                               column_name
+                        FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                          AND column_name LIKE $1
+                    `;
+                }
+
+                query += ` ORDER BY object_type, schema_name, object_name;`;
+
+                const result = await client.query(query, [pattern]);
+
+                console.error(`✅ Found ${result.rowCount} matching objects`);
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify({
+                                search_pattern: pattern,
+                                searched_columns: searchColumns,
+                                results: result.rows
+                            }, null, 2),
+                        },
+                    ],
+                };
+            }
+
             default:
                 throw new Error(`Unknown tool: ${name}`);
         }
@@ -375,5 +981,172 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
     process.exit(1);
 });
+
+// Claude Desktop configuration function
+function configureClaudeDesktop() {
+    console.log('🔧 Configuring Claude Desktop for PostgreSQL MCP Server...\n');
+    
+    try {
+        // Detect OS and get config path
+        const configPath = getClaudeConfigPath();
+        console.log(`📁 Config path: ${configPath}`);
+        
+        // Read or create config
+        let config = {};
+        if (fs.existsSync(configPath)) {
+            try {
+                const configContent = fs.readFileSync(configPath, 'utf8');
+                config = JSON.parse(configContent);
+                console.log('✅ Found existing Claude Desktop configuration');
+            } catch (error) {
+                console.log('⚠️  Existing config file has invalid JSON, creating new configuration');
+                config = {};
+            }
+        } else {
+            console.log('📝 No existing config found, creating new configuration');
+            // Create directory if it doesn't exist
+            const configDir = path.dirname(configPath);
+            fs.mkdirSync(configDir, { recursive: true });
+        }
+        
+        // Initialize mcpServers if it doesn't exist
+        if (!config.mcpServers) {
+            config.mcpServers = {};
+        }
+        
+        // Get DATABASE_URL from user if not set
+        let databaseUrl = process.env.DATABASE_URL;
+        if (!databaseUrl) {
+            console.log('\n⚠️  DATABASE_URL environment variable not found.');
+            console.log('Please set it first, for example:');
+            console.log('export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"');
+            console.log('\nOr you can manually edit the config file later at:');
+            console.log(configPath);
+            databaseUrl = "postgresql://username:password@host:port/database?sslmode=require";
+        }
+        
+        // Add or update the postgresql MCP server configuration
+        config.mcpServers.postgresql = {
+            command: "postgresql-mcp-server",
+            env: {
+                DATABASE_URL: databaseUrl
+            }
+        };
+        
+        // Write updated config
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+        
+        console.log('\n✅ Claude Desktop configuration updated successfully!');
+        console.log('\nConfiguration added:');
+        console.log(JSON.stringify({ mcpServers: { postgresql: config.mcpServers.postgresql } }, null, 2));
+        
+        console.log('\n📋 Next steps:');
+        console.log('1. Restart Claude Desktop');
+        if (!process.env.DATABASE_URL) {
+            console.log('2. Set your DATABASE_URL environment variable');
+            console.log('3. Or edit the config file manually to add your database connection string');
+        } else {
+            console.log('2. Start chatting with Claude - it now has access to your PostgreSQL database!');
+        }
+        
+        console.log('\n💡 Test the connection with: postgresql-mcp-server --test');
+        
+    } catch (error) {
+        console.error('❌ Failed to configure Claude Desktop:', error.message);
+        console.error('\n💡 You can manually configure Claude Desktop by editing:');
+        console.error(getClaudeConfigPath());
+        console.error('\nAdd this configuration:');
+        console.error(JSON.stringify({
+            mcpServers: {
+                postgresql: {
+                    command: "postgresql-mcp-server",
+                    env: {
+                        DATABASE_URL: "postgresql://username:password@host:port/database?sslmode=require"
+                    }
+                }
+            }
+        }, null, 2));
+        process.exit(1);
+    }
+}
+
+function getClaudeConfigPath() {
+    const platform = os.platform();
+    const homeDir = os.homedir();
+    
+    switch (platform) {
+        case 'darwin': // macOS
+            return path.join(homeDir, 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json');
+        case 'linux':
+            return path.join(homeDir, '.config', 'Claude', 'claude_desktop_config.json');
+        case 'win32': // Windows
+            const appData = process.env.APPDATA || path.join(homeDir, 'AppData', 'Roaming');
+            return path.join(appData, 'Claude', 'claude_desktop_config.json');
+        default:
+            throw new Error(`Unsupported operating system: ${platform}. Please configure manually.`);
+    }
+}
+
+function showConfigLocation() {
+    console.log('🔍 Finding Claude Desktop configuration file...\n');
+    
+    try {
+        const configPath = getClaudeConfigPath();
+        const platform = os.platform();
+        
+        console.log(`🖥️  Operating System: ${platform === 'darwin' ? 'macOS' : platform === 'win32' ? 'Windows' : platform}`);
+        console.log(`📁 Configuration file location:`);
+        console.log(`   ${configPath}`);
+        
+        // Check if file exists
+        const fileExists = fs.existsSync(configPath);
+        console.log(`📄 File exists: ${fileExists ? '✅ Yes' : '❌ No (will be created when you add config)'}`);
+        
+        if (fileExists) {
+            try {
+                const configContent = fs.readFileSync(configPath, 'utf8');
+                const config = JSON.parse(configContent);
+                const hasPostgresql = config.mcpServers && config.mcpServers.postgresql;
+                console.log(`🔗 PostgreSQL MCP configured: ${hasPostgresql ? '✅ Yes' : '❌ No'}`);
+            } catch (error) {
+                console.log(`⚠️  Config file exists but has invalid JSON`);
+            }
+        }
+        
+        console.log('\n📝 Manual Configuration Instructions:');
+        console.log('1. Open the configuration file in your text editor');
+        console.log('2. Add or update the following configuration:');
+        
+        const exampleConfig = {
+            mcpServers: {
+                postgresql: {
+                    command: "postgresql-mcp-server",
+                    env: {
+                        DATABASE_URL: process.env.DATABASE_URL || "postgresql://username:password@host:port/database?sslmode=require"
+                    }
+                }
+            }
+        };
+        
+        console.log('\n```json');
+        console.log(JSON.stringify(exampleConfig, null, 2));
+        console.log('```');
+        
+        console.log('\n💡 Alternative commands:');
+        console.log('   Automatic config: postgresql-mcp-server --configure');
+        console.log('   Test connection:  postgresql-mcp-server --test');
+        
+        if (!process.env.DATABASE_URL) {
+            console.log('\n⚠️  Don\'t forget to set your DATABASE_URL environment variable:');
+            console.log('   export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"');
+        }
+        
+    } catch (error) {
+        console.error('❌ Failed to locate Claude Desktop configuration:', error.message);
+        console.error('\n💡 Supported operating systems: macOS, Linux, Windows');
+        console.error('For manual configuration, please refer to the Claude Desktop documentation.');
+        process.exit(1);
+    }
+}
 
 main().catch(console.error);

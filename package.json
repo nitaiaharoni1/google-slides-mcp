@@ -1,7 +1,7 @@
 {
   "name": "postgresql-mcp-server",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for PostgreSQL database access",
+  "description": "Model Context Protocol server for PostgreSQL database access with comprehensive introspection and analysis tools",
   "main": "server.js",
   "bin": {
     "postgresql-mcp-server": "./server.js"
@@ -9,27 +9,47 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "configure": "node server.js --configure",
+    "find-config": "node server.js --find-config",
+    "prepublishOnly": "npm test",
+    "postinstall": "echo '\n🎉 PostgreSQL MCP Server installed successfully!\n📖 See README for configuration: https://github.com/nitaiaharoni/postgresql-mcp-server#readme\n'",
+    "release": "node release.js",
+    "release:dry": "node release.js --dry-run",
+    "version:check": "echo \"Current version: $(node -p 'require(\"./package.json\").version')\""
   },
   "keywords": [
     "mcp",
     "model-context-protocol",
     "postgresql",
+    "postgres",
     "claude",
     "ai",
     "database",
-    "sql"
+    "sql",
+    "introspection",
+    "analytics",
+    "database-tools"
   ],
   "author": "Nitai Aharoni <nitaiaharoni1@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/postgresql-mcp-server.git"
+    "url": "https://github.com/nitaiaharoni/postgresql-mcp-server.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/postgresql-mcp-server/issues"
+    "url": "https://github.com/nitaiaharoni/postgresql-mcp-server/issues"
   },
-  "homepage": "https://github.com/yourusername/postgresql-mcp-server#readme",
+  "homepage": "https://github.com/nitaiaharoni/postgresql-mcp-server#readme",
+  "files": [
+    "server.js",
+    "test.js",
+    "release.js",
+    ".env.example",
+    "README.md",
+    "LICENSE"
+  ],
+  "preferGlobal": true,
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
     "dotenv": "^16.5.0",
