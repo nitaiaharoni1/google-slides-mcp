@@ -1,4 +1,4 @@
-# PostgreSQL MCP Server
+# Claude PostgreSQL MCP
 
 A Model Context Protocol (MCP) server that provides Claude with direct access to PostgreSQL databases. This server enables Claude to query, analyze, and interact with your PostgreSQL database through natural language conversations.
 
@@ -156,7 +156,7 @@ If you want to modify the code or contribute:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nitaiaharoni/claude-postgres-mcp.git
+   git clone https://github.com/nitaiaharoni1/claude-postgres-mcp.git
    cd claude-postgres-mcp
    ```
 
