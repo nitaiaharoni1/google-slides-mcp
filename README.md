@@ -350,82 +350,88 @@ npm run test:cli
 This project uses **Husky** to enforce code quality standards:
 
 #### 🔒 **Pre-commit Checks** (Run on every commit)
-- ✅ **TypeScript Compilation** - Ensures all code compiles without errors
-- ✅ **Unit Tests** - All 72 unit tests must pass (100% success rate)
-- ✅ **Version Consistency** - Validates package.json version
+- ✅ **TypeScript compilation** - Ensures code compiles without errors
+- ✅ **Unit tests** - Validates all unit tests pass
+- ✅ **Package validation** - Verifies npm package integrity
 
 #### 🚀 **Pre-push Checks** (Run before pushing to remote)
-- ✅ **Clean Build** - Full rebuild from scratch
-- ✅ **Test Coverage** - Comprehensive test suite with coverage report
-- ✅ **Package Verification** - Ensures package can be built for npm
+- ✅ **Clean build** - Full clean build from scratch
+- ✅ **Unit tests with coverage** - Comprehensive test coverage analysis
+- ✅ **Package verification** - Ensures package can be published
 
-**Note**: These hooks run automatically and will **prevent commits/pushes that fail quality checks**. This ensures the main branch always contains working, tested code.
+These hooks prevent broken code from being committed or pushed, maintaining high code quality standards for all contributors.
 
-### Building and Publishing
+## 🔄 CI/CD Pipeline
 
-```bash
-# Clean build
-npm run clean && npm run build
+This project uses **GitHub Actions** for automated continuous integration and deployment:
 
-# Run tests before publish
-npm run test:unit
+### 📋 **Workflows**
 
-# Publish to npm
-npm publish
+#### 🧪 **CI Workflow** (`.github/workflows/ci.yml`)
+**Triggers:** Push to `main`/`develop`, Pull Requests
+- ✅ **Multi-Node Testing** - Tests on Node.js 18.x and 20.x
+- ✅ **Build Verification** - Ensures TypeScript compilation succeeds
+- ✅ **Unit Test Execution** - Runs comprehensive unit test suite
+- ✅ **Coverage Reporting** - Uploads test coverage to Codecov
+- ✅ **Security Audit** - Checks for vulnerabilities in dependencies
+- ✅ **Package Validation** - Verifies npm package can be built
+
+#### 🚀 **Release Workflow** (`.github/workflows/release.yml`)
+**Triggers:** GitHub Releases, Version Tags (`v*`)
+- ✅ **Automated Testing** - Full test suite execution
+- ✅ **Production Build** - Clean build for distribution
+- ✅ **NPM Publishing** - Automatic publish to npm registry
+- ✅ **Release Notes** - Auto-generated GitHub release notes
+
+#### 🔗 **Integration Tests** (`.github/workflows/integration.yml`)
+**Triggers:** Manual dispatch, Scheduled (daily)
+- ✅ **Local Database Testing** - Tests with containerized PostgreSQL/MySQL
+- ✅ **External Database Support** - Tests with provided database URLs
+- ✅ **Multi-Database Matrix** - Tests PostgreSQL, MySQL, and SQLite
+- ✅ **SSL Configuration** - Validates cloud database connectivity
+
+#### 🤖 **Dependabot Auto-merge** (`.github/workflows/dependabot-auto-merge.yml`)
+**Triggers:** Dependabot Pull Requests
+- ✅ **Automated Dependency Updates** - Weekly dependency updates
+- ✅ **Auto-merge** - Automatically merges patch/minor updates after CI passes
+- ✅ **Security Updates** - Prioritizes security vulnerability fixes
+
+### 🔧 **Setup Instructions**
+
+#### **For Repository Maintainers:**
+
+1. **NPM Token Setup:**
+   ```bash
+   # Create npm access token at https://www.npmjs.com/settings/tokens
+   # Add to GitHub Secrets as NPM_TOKEN
+   ```
+
+2. **Optional Database Testing:**
+   ```bash
+   # Add to GitHub Secrets for integration testing
+   TEST_DATABASE_URL="postgresql://user:pass@host:port/db"
+   ```
+
+3. **Dependabot Configuration:**
+   - Automatically configured in `.github/dependabot.yml`
+   - Updates dependencies weekly on Mondays
+   - Auto-assigns to `nitaiaharoni1`
+
+#### **Manual Workflow Triggers:**
+
+- **Integration Tests:** Go to Actions → Integration Tests → Run workflow
+- **Manual Release:** Create a new release or push a version tag
+
+### 📊 **Status Badges**
+
+Add these badges to monitor build status:
+
+```markdown
+![CI](https://github.com/nitaiaharoni1/database-mcp/workflows/CI/badge.svg)
+![Release](https://github.com/nitaiaharoni1/database-mcp/workflows/Release/badge.svg)
+[![npm version](https://badge.fury.io/js/database-mcp.svg)](https://badge.fury.io/js/database-mcp)
+[![codecov](https://codecov.io/gh/nitaiaharoni1/database-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/nitaiaharoni1/database-mcp)
 ```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-### Development Guidelines
-
-1. **Code Quality**: All code must pass TypeScript compilation and ESLint checks
-2. **Testing**: Maintain 100% unit test coverage for new features
-3. **Documentation**: Update README and inline documentation for new features
-4. **Compatibility**: Ensure changes work across all supported database types
-
-## 📋 Requirements
-
-- **Node.js** v16.0.0 or higher
-- **TypeScript** for development
-- **Database Access**: 
-  - PostgreSQL 9.6+ (cloud or local)
-  - MySQL 5.7+ or 8.0+ 
-  - SQLite 3.0+
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**SSL Certificate Problems (PostgreSQL)**
-```bash
-# For development/testing only
-export NODE_TLS_REJECT_UNAUTHORIZED=0
-```
-
-**Permission Denied (SQLite)**
-```bash
-# Check file permissions
-chmod 644 /path/to/database.sqlite
-```
-
-**Connection Refused**
-- Verify database server is running
-- Check firewall settings
-- Confirm connection string format
-
-**Claude Desktop Not Detecting Server**
-- Restart Claude Desktop after configuration
-- Check config file location with `database-mcp --find-config`
-- Verify JSON syntax in configuration file
-
-### Getting Help
-
-1. **Check the logs** in Claude Desktop's developer console
-2. **Test connection** with `database-mcp --test` (if available)
-3. **Verify configuration** with `database-mcp --find-config`
-4. **Open an issue** on GitHub with error details
 
 ## 📄 License
 
