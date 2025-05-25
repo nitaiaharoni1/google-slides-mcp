@@ -29,6 +29,14 @@ class PostgreSQLDatabase extends DatabaseInterface {
     
     try {
       const config = this._buildConnectionConfig();
+      
+      // Debug logging
+      if (process.env.NODE_ENV === 'test') {
+        console.error(`🔍 PostgreSQL Connection Debug:`);
+        console.error(`   - Connection String: ${this.connectionString.replace(/:[^:@]*@/, ':***@')}`);
+        console.error(`   - Config:`, JSON.stringify(config, null, 2));
+      }
+      
       this.client = new Client(config);
       await this.client.connect();
 
@@ -173,10 +181,24 @@ class PostgreSQLDatabase extends DatabaseInterface {
       connectionTimeoutMillis: QUERY_LIMITS.CONNECTION_TIMEOUT,
     };
 
+    if (process.env.NODE_ENV === 'test') {
+      console.error(`🔍 Building PostgreSQL Config:`);
+      console.error(`   - Connection String: ${this.connectionString.replace(/:[^:@]*@/, ':***@')}`);
+    }
+
     const sslConfig = SSLConfigManager.getSSLConfig(this.connectionString);
+    
+    if (process.env.NODE_ENV === 'test') {
+      console.error(`   - SSL Config from Manager:`, sslConfig);
+    }
+    
     if (sslConfig) {
       config.ssl = sslConfig;
       SSLConfigManager.logSSLStatus(this.type, sslConfig);
+    }
+
+    if (process.env.NODE_ENV === 'test') {
+      console.error(`   - Final Config:`, JSON.stringify(config, null, 2));
     }
 
     return config;

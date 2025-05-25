@@ -285,22 +285,50 @@ export class SSLConfigManager {
      * @returns {Object|boolean} - SSL configuration or false
      */
     static getSSLConfig(connectionString: string): SSLConfig | false {
-        if (this.isCloudProvider(connectionString)) {
-            return {
-                rejectUnauthorized: false,
-                checkServerIdentity: () => undefined,
-                requestCert: true,
-                agent: false
-            };
+        // Check if we should use SSL at all
+        const isCloudProvider = this.isCloudProvider(connectionString);
+        const isTestEnv = process.env.NODE_ENV === 'test' || process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0';
+        
+        // Debug logging
+        if (process.env.NODE_ENV === 'test') {
+            console.error(`🔍 SSL Config Debug:`);
+            console.error(`   - Connection: ${connectionString.replace(/:[^:@]*@/, ':***@')}`);
+            console.error(`   - Is Cloud Provider: ${isCloudProvider}`);
+            console.error(`   - Is Test Env: ${isTestEnv}`);
+            console.error(`   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`);
         }
-
-        if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
-            return {
+        
+        if (isCloudProvider || isTestEnv) {
+            // Simplified SSL configuration that works reliably with pg client
+            const config: SSLConfig = {
                 rejectUnauthorized: false,
                 checkServerIdentity: () => undefined
             };
+            
+            if (process.env.NODE_ENV === 'test') {
+                console.error(`   - SSL Config Generated:`, JSON.stringify(config, null, 2));
+            }
+            
+            return config;
         }
 
+        // If not a cloud provider and not in test, check for explicit SSL requirements
+        if (connectionString.includes('sslmode=require') || connectionString.includes('ssl=true')) {
+            const config = {
+                rejectUnauthorized: !isTestEnv
+            };
+            
+            if (process.env.NODE_ENV === 'test') {
+                console.error(`   - SSL Config (explicit):`, JSON.stringify(config, null, 2));
+            }
+            
+            return config;
+        }
+
+        // No SSL
+        if (process.env.NODE_ENV === 'test') {
+            console.error(`   - SSL Config: false (no SSL)`);
+        }
         return false;
     }
 

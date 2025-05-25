@@ -18,7 +18,13 @@ describe('Database Integration Tests', () => {
       throw new Error('DATABASE_URL environment variable is required for integration tests');
     }
 
+    console.error('🔍 Integration Test Setup Debug:');
+    console.error(`   - DATABASE_URL: ${process.env.DATABASE_URL.replace(/:[^:@]*@/, ':***@')}`);
+    console.error(`   - NODE_ENV: ${process.env.NODE_ENV}`);
+    console.error(`   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`);
+
     // Direct database connection for verification
+    console.error('📡 Creating direct pg client connection...');
     client = new Client({
       connectionString: process.env.DATABASE_URL,
       ssl: {
@@ -27,10 +33,14 @@ describe('Database Integration Tests', () => {
       }
     });
 
+    console.error('🔌 Connecting direct pg client...');
     await client.connect();
+    console.error('✅ Direct pg client connected successfully');
 
     // Initialize MCP database
+    console.error('🚀 Initializing MCP database...');
     await initializeDatabase(process.env.DATABASE_URL);
+    console.error('✅ MCP database initialized successfully');
   });
 
   afterAll(async () => {
