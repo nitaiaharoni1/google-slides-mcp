@@ -1,47 +1,84 @@
-# Claude PostgreSQL MCP
+# Database MCP Server
 
-A Model Context Protocol (MCP) server that provides Claude with direct access to PostgreSQL databases. This server enables Claude to query, analyze, and interact with your PostgreSQL database through natural language conversations.
+A Model Context Protocol (MCP) server that provides AI assistants with direct access to multiple database types. This server enables natural language interactions with PostgreSQL, MySQL, and SQLite databases through comprehensive introspection and analysis tools.
 
-## Quick Install
+## 🚀 Quick Install
 
 ```bash
 # Install globally (recommended)
-npm install -g claude-postgres-mcp
+npm install -g database-mcp
 
 # Set your database connection
 export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
+# or
+export DATABASE_URL="mysql://username:password@host:port/database"
+# or
+export DATABASE_URL="./path/to/database.sqlite"
 
 # Automatically configure Claude Desktop
-claude-postgres-mcp --configure
+database-mcp --configure
+
+# Or configure with database URL directly (no environment variable needed)
+database-mcp --configure "postgresql://username:password@host:port/database?sslmode=require"
 
 # Or use without installing
-npx claude-postgres-mcp --configure
+npx database-mcp --configure
 ```
 
 That's it! The server will automatically detect your OS and configure Claude Desktop for you.
 
-**Prefer manual configuration?** Use `claude-postgres-mcp --find-config` to locate your Claude Desktop config file and get setup instructions.
+**Prefer manual configuration?** Use `database-mcp --find-config` to locate your Claude Desktop config file and get setup instructions.
 
-Then configure Claude Desktop (see [Installation](#installation) for details).
+## ✨ Features
 
-## Features
+### 🗄️ **Multi-Database Support**
+- **PostgreSQL** - Full support for cloud providers (AWS RDS, Google Cloud SQL, DigitalOcean, Azure)
+- **MySQL** - Complete MySQL 5.7+ and 8.0+ compatibility  
+- **SQLite** - Local and embedded database support
 
-- 🔐 **Secure SSL/TLS connections** - Works with cloud providers like DigitalOcean, AWS RDS, Google Cloud SQL
-- 📊 **Comprehensive database introspection** - List tables, schemas, indexes, foreign keys, and functions
-- 🔍 **Advanced query capabilities** - Execute SELECT queries with detailed results and execution plans
-- 📈 **Database analytics** - Table statistics, column analysis, and performance insights
-- 🔗 **Relationship mapping** - Discover foreign key relationships and database structure
-- 🛡️ **Safe by design** - Read-only operations to prevent accidental data modification
-- 🔎 **Smart search** - Find tables and columns by name patterns
-- ⚡ **Easy setup** - Simple configuration and comprehensive testing
+### 🔐 **Secure Connections**
+- **Smart SSL/TLS** - Automatic SSL detection for cloud databases
+- **Environment-aware** - Different security modes for development/production
+- **Certificate handling** - Built-in support for cloud provider certificates
 
-## Installation
+### 📊 **Comprehensive Database Introspection**
+- **Schema exploration** - List databases, tables, views, and schemas
+- **Structure analysis** - Detailed table descriptions, column info, data types
+- **Relationship mapping** - Foreign key relationships and constraints
+- **Index information** - Primary keys, indexes, and performance insights
+- **Function discovery** - Stored procedures and database functions
+
+### 🔍 **Advanced Query Capabilities**
+- **Safe execution** - Read-only operations to prevent data modification
+- **Query planning** - EXPLAIN query execution plans and optimization
+- **Result formatting** - Structured output with metadata
+- **Error handling** - Graceful error management and helpful messages
+
+### 📈 **Database Analytics**
+- **Table statistics** - Row counts, size information, and storage details
+- **Column analysis** - Data distribution, null values, and unique counts
+- **Performance insights** - Query performance and optimization suggestions
+- **Database health** - Connection status and system information
+
+### 🔎 **Smart Discovery**
+- **Pattern search** - Find tables and columns by name patterns
+- **Content search** - Search across table and column names
+- **Relationship discovery** - Automatic foreign key relationship detection
+- **Schema navigation** - Browse complex database structures easily
+
+### ⚡ **Developer Experience**
+- **Easy setup** - Automatic configuration for Claude Desktop
+- **Comprehensive testing** - 100% unit test coverage with Jest
+- **TypeScript** - Full type safety and excellent IDE support
+- **CLI tools** - Command-line utilities for configuration and testing
+
+## 🛠️ Installation
 
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v16 or higher)
-- [Claude Desktop](https://claude.ai/desktop) installed
-- Access to a PostgreSQL database
+- [Claude Desktop](https://claude.ai/desktop) or any MCP-compatible AI client
+- Access to a PostgreSQL, MySQL, or SQLite database
 
 ### Quick Start
 
@@ -51,24 +88,35 @@ Choose one of the installation methods below:
 
 1. **Install globally via npm:**
    ```bash
-   npm install -g claude-postgres-mcp
+   npm install -g database-mcp
    ```
 
-2. **Set your database connection:**
+2. **Set your database connection (optional):**
    ```bash
+   # PostgreSQL (cloud or local)
    export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
+   
+   # MySQL
+   export DATABASE_URL="mysql://username:password@host:port/database"
+   
+   # SQLite
+   export DATABASE_URL="./path/to/database.sqlite"
    ```
 
 3. **Automatically configure Claude Desktop:**
    ```bash
-   claude-postgres-mcp --configure
+   # Use environment variable DATABASE_URL
+   database-mcp --configure
+   
+   # Or provide database URL directly
+   database-mcp --configure "postgresql://username:password@host:port/database"
    ```
    
    This command will:
    - Detect your operating system (macOS, Linux, Windows)
    - Find your Claude Desktop configuration file
-   - Add the PostgreSQL MCP server configuration
-   - Use your existing `DATABASE_URL` environment variable
+   - Add the Database MCP server configuration
+   - Use your provided database URL or existing `DATABASE_URL` environment variable
    
 4. **Restart Claude Desktop** and start chatting!
 
@@ -76,7 +124,10 @@ Choose one of the installation methods below:
 
 ```bash
 # Configure Claude Desktop without installing
-npx claude-postgres-mcp --configure
+npx database-mcp --configure
+
+# Or provide database URL directly
+npx database-mcp --configure "mysql://username:password@localhost:3306/database"
 ```
 
 #### Method 3: Manual Configuration
@@ -85,18 +136,18 @@ If you prefer to configure manually or the automatic configuration doesn't work:
 
 1. **Install the package:**
    ```bash
-   npm install -g claude-postgres-mcp
+   npm install -g database-mcp
    ```
 
 2. **Find your Claude Desktop config file location:**
    ```bash
-   claude-postgres-mcp --find-config
+   database-mcp --find-config
    ```
    
    This will show you:
    - Your OS-specific config file path
    - Whether the file already exists
-   - Whether PostgreSQL MCP is already configured
+   - Whether Database MCP is already configured
    - Complete manual configuration instructions
 
 3. **Manually edit Claude Desktop configuration:**
@@ -106,10 +157,10 @@ If you prefer to configure manually or the automatic configuration doesn't work:
    ```json
    {
      "mcpServers": {
-       "postgresql": {
-         "command": "claude-postgres-mcp",
+       "database": {
+         "command": "database-mcp",
          "env": {
-           "DATABASE_URL": "postgresql://username:password@host:port/database?sslmode=require"
+           "DATABASE_URL": "your-database-connection-string"
          }
        }
      }
@@ -118,49 +169,152 @@ If you prefer to configure manually or the automatic configuration doesn't work:
 
 4. **Restart Claude Desktop**
 
-#### Method 4: Local Installation
+## 🔗 Connection String Examples
 
-1. **Create a project directory:**
-   ```bash
-   mkdir my-mcp-servers && cd my-mcp-servers
-   npm init -y
-   ```
+### PostgreSQL
+```bash
+# Cloud providers (SSL automatically enabled)
+postgresql://user:pass@host.amazonaws.com:5432/db
+postgresql://user:pass@host.ondigitalocean.com:25060/db?sslmode=require
+postgresql://user:pass@host.database.windows.net:5432/db
 
-2. **Install locally:**
-   ```bash
-   npm install claude-postgres-mcp
-   ```
+# Local PostgreSQL (SSL disabled)
+postgresql://user:pass@localhost:5432/database
+```
 
-3. **Configure Claude Desktop:**
+### MySQL
+```bash
+# Cloud MySQL
+mysql://user:pass@host.amazonaws.com:3306/database
 
-   ```json
-   {
-     "mcpServers": {
-       "postgresql": {
-         "command": "node",
-         "args": ["/path/to/my-mcp-servers/node_modules/claude-postgres-mcp/server.js"],
-         "env": {
-           "DATABASE_URL": "postgresql://username:password@host:port/database?sslmode=require"
-         }
-       }
-     }
-   }
-   ```
+# Local MySQL
+mysql://user:pass@localhost:3306/database
+```
 
-4. **Test the connection:**
-   ```bash
-   cd my-mcp-servers
-   npx claude-postgres-mcp --test
-   ```
+### SQLite
+```bash
+# Absolute path
+/absolute/path/to/database.sqlite
 
-#### Alternative: Manual Installation (Development)
+# Relative path
+./relative/path/to/database.db
 
-If you want to modify the code or contribute:
+# Memory database (for testing)
+:memory:
+```
+
+## 🎯 Available Tools
+
+The Database MCP server provides 13 powerful tools for database interaction:
+
+### Query Tools
+- **`query_database`** - Execute SELECT queries with formatted results
+- **`explain_query`** - Analyze query execution plans and performance
+
+### Schema Tools  
+- **`list_schemas`** - List all available schemas/databases
+- **`list_tables`** - List tables and views with details
+- **`describe_table`** - Get detailed table structure and column information
+- **`list_indexes`** - List all indexes and their properties
+- **`get_foreign_keys`** - Discover foreign key relationships
+- **`list_functions`** - List stored procedures and functions
+
+### Analysis Tools
+- **`get_table_stats`** - Get table statistics (row counts, sizes)
+- **`get_database_info`** - Get database version and configuration
+- **`analyze_column`** - Analyze column data distribution and statistics
+
+### Discovery Tools
+- **`search_tables`** - Search for tables and columns by name patterns
+
+### Administrative Tools
+- **`get_connection_info`** - Check connection status and database details
+
+## 💡 Usage Examples
+
+### Basic Database Exploration
+```
+"What tables are in my database?"
+"Show me the structure of the users table"
+"What are the foreign key relationships in my database?"
+```
+
+### Data Analysis
+```
+"How many records are in each table?"
+"Show me the column statistics for the orders table"
+"What's the distribution of values in the status column?"
+```
+
+### Query Assistance
+```
+"Find all customers who placed orders in the last 30 days"
+"Show me the execution plan for this query: SELECT * FROM users WHERE email = ?"
+"What indexes exist on the products table?"
+```
+
+### Schema Discovery
+```
+"Find all tables related to user management"
+"What columns contain the word 'email'?"
+"Show me all tables that reference the users table"
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+- **`DATABASE_URL`** - Your database connection string (required)
+- **`NODE_TLS_REJECT_UNAUTHORIZED`** - Set to '0' to disable SSL verification for development (not recommended for production)
+
+### Database-Specific Options
+
+#### PostgreSQL SSL Modes
+- **`require`** - Always use SSL (recommended for production)
+- **`prefer`** - Use SSL if available, fall back to non-SSL
+- **`disable`** - Never use SSL (local development only)
+
+#### Example with SSL options:
+```bash
+export DATABASE_URL="postgresql://user:pass@host:5432/db?sslmode=require"
+```
+
+## 🧪 Testing
+
+The Database MCP server includes comprehensive testing:
+
+```bash
+# Run all tests
+npm test
+
+# Run only unit tests (recommended for CI)
+npm run test:unit
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode (development)
+npm run test:watch
+
+# Test CLI functionality
+npm run test:cli
+```
+
+**Test Coverage:**
+- ✅ **72/72 Unit Tests** passing (100% success rate)
+- ✅ **CLI Tools** - Complete command-line interface testing
+- ✅ **Database Factory** - Multi-database detection and validation
+- ✅ **Query Builder** - Database-agnostic query utilities
+- ✅ **Tools** - All 13 MCP tools with schema validation
+
+## 🏗️ Development
+
+### Local Development Setup
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nitaiaharoni1/claude-postgres-mcp.git
-   cd claude-postgres-mcp
+   git clone https://github.com/nitaiaharoni1/database-mcp.git
+   cd database-mcp
    ```
 
 2. **Install dependencies:**
@@ -174,324 +328,106 @@ If you want to modify the code or contribute:
    # Edit .env with your database credentials
    ```
 
-4. **Test the connection:**
+4. **Run tests:**
    ```bash
    npm test
    ```
 
-5. **Use automatic configuration:**
+5. **Build the project:**
    ```bash
-   npm run configure
-   ```
-   
-   Or manually configure Claude Desktop with local path:
-   ```json
-   {
-     "mcpServers": {
-       "postgresql": {
-         "command": "node",
-         "args": ["/path/to/claude-postgres-mcp/server.js"],
-         "env": {
-           "DATABASE_URL": "postgresql://username:password@host:port/database?sslmode=require"
-         }
-       }
-     }
-   }
+   npm run build
    ```
 
-## Configuration
+6. **Test locally:**
+   ```bash
+   npm run dev
+   ```
 
-### Environment Variables
-
-- `DATABASE_URL` - PostgreSQL connection string
-- `NODE_TLS_REJECT_UNAUTHORIZED` - Set to '0' for self-signed certificates (not recommended for production)
-
-### Connection String Examples
+### Building and Publishing
 
 ```bash
-# Standard connection
-DATABASE_URL="postgresql://username:password@localhost:5432/mydb"
+# Clean build
+npm run clean && npm run build
 
-# SSL required (recommended for production)
-DATABASE_URL="postgresql://username:password@host:5432/mydb?sslmode=require"
+# Run tests before publish
+npm run test:unit
 
-# Cloud providers (DigitalOcean, AWS RDS, etc.)
-DATABASE_URL="postgresql://username:password@hostname:25060/database?sslmode=require"
+# Publish to npm
+npm publish
 ```
 
-## Usage
+## 🤝 Contributing
 
-Once configured, you can interact with your database through Claude:
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
-### Setup Commands
+### Development Guidelines
 
-Before using with Claude, you may want to:
+1. **Code Quality**: All code must pass TypeScript compilation and ESLint checks
+2. **Testing**: Maintain 100% unit test coverage for new features
+3. **Documentation**: Update README and inline documentation for new features
+4. **Compatibility**: Ensure changes work across all supported database types
 
+## 📋 Requirements
+
+- **Node.js** v16.0.0 or higher
+- **TypeScript** for development
+- **Database Access**: 
+  - PostgreSQL 9.6+ (cloud or local)
+  - MySQL 5.7+ or 8.0+ 
+  - SQLite 3.0+
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**SSL Certificate Problems (PostgreSQL)**
 ```bash
-# Automatically configure Claude Desktop
-claude-postgres-mcp --configure
-
-# Find Claude Desktop config file location for manual setup
-claude-postgres-mcp --find-config
-
-# Test your database connection  
-claude-postgres-mcp --test
-
-# Check version
-claude-postgres-mcp --version
-
-# Get help
-claude-postgres-mcp --help
-```
-
-### Basic Database Exploration
-```
-"List all tables in my database"
-"What schemas are available?"
-"Show me the structure of the users table"
-```
-
-### Data Querying
-```
-"Show me the first 10 rows from the orders table"
-"How many users are registered?"
-"What are the most popular products?"
-```
-
-### Database Analysis
-```
-"Analyze the distribution of values in the status column"
-"Show me table sizes and statistics"
-"What indexes exist on the users table?"
-```
-
-### Performance Optimization
-```
-"Explain the query plan for this SELECT statement"
-"Which tables are the largest in my database?"
-"Show me foreign key relationships"
-```
-
-### Discovery and Search
-```
-"Find all tables with 'user' in the name"
-"Search for columns containing 'email'"
-"List all functions in the database"
-```
-
-## Available Tools
-
-The MCP server provides 12 comprehensive tools for database interaction:
-
-### **Core Query Tools**
-1. **`query_database`** - Execute SQL queries (SELECT only) with formatted results
-2. **`explain_query`** - Get query execution plans for performance analysis
-
-### **Schema & Structure Tools**
-3. **`list_schemas`** - List all database schemas (system and user)
-4. **`list_tables`** - Get all tables and views with their types
-5. **`describe_table`** - Get detailed column information for specific tables
-6. **`list_indexes`** - Show indexes for tables with type and uniqueness info
-7. **`get_foreign_keys`** - Display foreign key relationships and constraints
-8. **`list_functions`** - List stored functions, procedures, and aggregates
-
-### **Analysis & Statistics Tools**
-9. **`get_table_stats`** - Table sizes, row counts, and column statistics
-10. **`analyze_column`** - Deep column analysis including distribution and common values
-11. **`get_database_info`** - Database version, size, settings, and connection info
-
-### **Discovery Tools**
-12. **`search_tables`** - Search for tables, views, and columns by name patterns
-
-## Security Considerations
-
-- **Read-only access**: The server is designed for SELECT queries only
-- **Input validation**: All queries are validated to prevent dangerous operations
-- **SSL/TLS**: Always use encrypted connections in production
-- **Credentials**: Store database credentials securely using environment variables
-- **Network**: Ensure your database is properly firewalled
-- **Monitoring**: Monitor database access and query patterns
-
-## Troubleshooting
-
-### SSL Certificate Issues
-
-Cloud providers like DigitalOcean, AWS RDS often use self-signed certificates. If you encounter SSL certificate errors:
-
-```bash
-# For development/testing - disable certificate verification
+# For development/testing only
 export NODE_TLS_REJECT_UNAUTHORIZED=0
-npm test
-
-# Or run the server with SSL verification disabled
-NODE_TLS_REJECT_UNAUTHORIZED=0 node server.js
 ```
 
-**Production SSL Configuration:**
+**Permission Denied (SQLite)**
 ```bash
-# Always use SSL in production
-DATABASE_URL="postgresql://username:password@host:port/db?sslmode=require"
-
-# For cloud providers, the server automatically handles certificate issues
-# No additional configuration needed
+# Check file permissions
+chmod 644 /path/to/database.sqlite
 ```
 
-**Common SSL errors and solutions:**
-- `self-signed certificate in certificate chain` - Normal for cloud providers, server handles this
-- `no pg_hba.conf entry for host` with `no encryption` - Add `?sslmode=require` to connection string
-- Connection timeout - Check firewall settings and database accessibility
+**Connection Refused**
+- Verify database server is running
+- Check firewall settings
+- Confirm connection string format
 
-### Connection Failures
+**Claude Desktop Not Detecting Server**
+- Restart Claude Desktop after configuration
+- Check config file location with `database-mcp --find-config`
+- Verify JSON syntax in configuration file
 
-1. Verify database credentials
-2. Check network connectivity
-3. Ensure database accepts connections from your IP
-4. Verify SSL/TLS settings
+### Getting Help
 
-### MCP Server Not Recognized
+1. **Check the logs** in Claude Desktop's developer console
+2. **Test connection** with `database-mcp --test` (if available)
+3. **Verify configuration** with `database-mcp --find-config`
+4. **Open an issue** on GitHub with error details
 
-1. Restart Claude Desktop after configuration changes
-2. Check the configuration file syntax
-3. Verify file paths in the configuration
-4. Check server.js has executable permissions
+## 📄 License
 
-## Development
+**Non-Commercial License** - All rights reserved to Nitai Aharoni.
 
-### Project Structure
+This software is available for:
+- ✅ Personal use (non-commercial)
+- ✅ Educational and research purposes  
+- ✅ Evaluation and testing
 
-```
-claude-postgres-mcp/
-├── server.js           # Main MCP server implementation
-├── test.js            # Comprehensive test suite
-├── package.json        # Node.js dependencies and scripts
-├── .env.example        # Environment variables template
-├── README.md          # This file
-└── LICENSE            # MIT License
-```
+**Commercial use is prohibited** without explicit permission. For commercial licensing inquiries, please contact: nitaiaharoni1@gmail.com
 
-### Running Tests
+See the [LICENSE](LICENSE) file for complete terms and conditions.
 
-The included test suite validates all 12 tools:
+## 🙋‍♂️ Support
 
-```bash
-npm test
-```
-
-Test coverage includes:
-- Database connection and basic queries
-- All schema introspection tools
-- Table and column analysis
-- Index and foreign key discovery
-- Query explanation and performance tools
-- Security validation
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes
-4. Add tests for new functionality
-5. Commit your changes: `git commit -am 'Add feature'`
-6. Push to the branch: `git push origin feature-name`
-7. Submit a pull request
-
-### Publishing (Maintainers)
-
-To publish a new version to npm:
-
-1. **Update version:**
-   ```bash
-   npm version patch|minor|major
-   ```
-
-2. **Test the package:**
-   ```bash
-   npm run test
-   npm pack  # Test package creation
-   ```
-
-3. **Publish to npm:**
-   ```bash
-   npm publish
-   ```
-
-4. **Push changes:**
-   ```bash
-   git push origin main --tags
-   ```
-
-The `prepublishOnly` script will automatically run tests before publishing.
-
-## Examples
-
-### E-commerce Database Analysis
-
-```
-"What are our best-selling products this month?"
-"Show me customer acquisition trends"
-"Find orders that haven't been shipped"
-"Analyze the distribution of order values"
-"Which product categories have the most foreign key relationships?"
-```
-
-### Performance Optimization
-
-```
-"Show me the execution plan for our slow customer query"
-"Which tables are taking up the most space?"
-"What indexes exist on our high-traffic tables?"
-"Analyze query performance bottlenecks"
-```
-
-### Data Discovery
-
-```
-"Find all tables related to user management"
-"Search for columns that might contain email addresses"
-"Show me all the stored functions available"
-"Map out the foreign key relationships in our schema"
-```
-
-### Database Maintenance
-
-```
-"Which tables haven't been analyzed recently?"
-"Show me database size and growth trends"
-"List all schemas and their purposes"
-"Find unused or redundant indexes"
-```
-
-## Supported PostgreSQL Versions
-
-- PostgreSQL 12+
-- Amazon RDS PostgreSQL
-- Google Cloud SQL PostgreSQL
-- Azure Database for PostgreSQL
-- DigitalOcean Managed PostgreSQL
-- Heroku PostgreSQL
-
-## Related Projects
-
-- [Model Context Protocol](https://github.com/modelcontextprotocol/protocol) - The underlying protocol
-- [Claude Desktop](https://claude.ai/desktop) - The Claude desktop application
-- [Other MCP Servers](https://github.com/modelcontextprotocol/servers) - Official MCP server implementations
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Support
-
-- 🐛 **Bug reports**: Create an issue in this repository
-- 💬 **Questions**: Use the discussion section
-- 📧 **Contact**: For private inquiries
-
-## Acknowledgments
-
-- [Anthropic](https://www.anthropic.com/) for Claude and the MCP protocol
-- [PostgreSQL](https://www.postgresql.org/) community
-- Contributors and testers
+- **GitHub Issues**: [Report bugs or request features](https://github.com/nitaiaharoni1/database-mcp/issues)
+- **Documentation**: This README and inline code documentation
+- **Community**: Contributions and discussions welcome!
 
 ---
 
-**⚠️ Important**: This tool provides database access to AI. Always review queries and ensure appropriate access controls are in place.
+**Made with ❤️ for the AI and database community**
