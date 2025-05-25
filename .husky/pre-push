@@ -8,11 +8,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Run all unit tests with coverage
-echo "🧪 Running tests with coverage..."
-npm run test:coverage
+# Run unit tests with coverage (skip integration tests that need DB)
+echo "🧪 Running unit tests with coverage..."
+npm run test:unit -- --coverage
 if [ $? -ne 0 ]; then
-  echo "❌ Tests with coverage failed!"
+  echo "❌ Unit tests with coverage failed!"
   exit 1
 fi
 
