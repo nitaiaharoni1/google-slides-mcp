@@ -29,12 +29,28 @@ export function handleCliCommands(args: string[]): boolean {
       showVersion();
       return true;
     case '--configure':
+      console.log('⚠️  WARNING: --configure is deprecated. Use "database-mcp init" instead.');
       showConfiguration();
       return true;
     case '--find-config':
       showConfigLocation();
       return true;
+    case 'init':
+      // Pass the connection string if provided as second argument
+      const connectionString = args[1];
+      interactiveSetup(connectionString);
+      return true;
+    case 'status':
+      showStatus();
+      return true;
+    case 'update':
+      // Pass the new connection string as second argument
+      const newConnectionString = args[1];
+      updateDatabaseUrl(newConnectionString);
+      return true;
     case '--setup':
+      console.log('⚠️  WARNING: --setup is deprecated. Use "database-mcp init" instead.');
+      // Keep --setup for backward compatibility
       interactiveSetup();
       return true;
     default:
@@ -48,16 +64,30 @@ Claude Multi-Database MCP Server
 
 Usage:
   database-mcp [options]
+  database-mcp init [connection_string]
+  database-mcp status
+  database-mcp update <connection_string>
 
 Options:
   --help, -h        Show this help message
   --version, -v     Show version information
-  --configure       Show configuration instructions
   --find-config     Show config file location
-  --setup           Interactive setup for Claude Desktop
+  init              Interactive setup for Claude Desktop
+  status            Show current database configuration
+  update            Update database connection string
+  --configure       Show configuration instructions (DEPRECATED - use init)
+  --setup           Interactive setup (DEPRECATED - use init)
+
+Examples:
+  database-mcp init
+  database-mcp init "postgresql://user:pass@host:port/db"
+  database-mcp init "mysql://user:pass@localhost:3306/mydb"
+  database-mcp init "./database.sqlite"
+  database-mcp status
+  database-mcp update "postgresql://user:pass@newhost:port/db"
 
 Environment Variables:
-  DATABASE_URL      Database connection string (required)
+  DATABASE_URL      Database connection string (used if not provided as argument)
 
 Supported Databases:
   - PostgreSQL: postgresql://user:pass@host:port/database
@@ -65,12 +95,14 @@ Supported Databases:
   - SQLite: /path/to/database.db
 
 Quick Start:
-  1. Set your DATABASE_URL environment variable
-  2. Run: database-mcp --setup
-  3. Restart Claude Desktop
+  1. Install: npm install -g database-mcp
+  2. Setup: database-mcp init "your_connection_string"
+  3. Check status: database-mcp status
+  4. Restart Claude Desktop
 
-Example:
-  DATABASE_URL="postgresql://user:pass@localhost:5432/mydb" database-mcp
+Alternative:
+  export DATABASE_URL="your_connection_string"
+  database-mcp init
 `);
 }
 
@@ -144,7 +176,7 @@ function showConfigLocation(): void {
   }
 }
 
-function interactiveSetup(): void {
+function interactiveSetup(connectionString?: string): void {
   console.log('🚀 Setting up database-mcp for Claude Desktop...\n');
   
   const configPath = getClaudeConfigPath();
@@ -175,17 +207,18 @@ function interactiveSetup(): void {
     config.mcpServers = {};
   }
   
-  // Check if DATABASE_URL is provided
-  const databaseUrl = process.env.DATABASE_URL;
+  // Check if DATABASE_URL is provided via argument or environment
+  const databaseUrl = connectionString || process.env.DATABASE_URL;
   if (!databaseUrl) {
     console.log(`
-❌ DATABASE_URL environment variable is required
+❌ DATABASE_URL is required
 
-Please set it first:
+Provide it as an argument:
+  database-mcp init "postgresql://user:pass@host:port/db"
+
+Or set as environment variable:
   export DATABASE_URL="your_connection_string"
-
-Then run setup again:
-  database-mcp --setup
+  database-mcp init
 `);
     return;
   }
@@ -241,6 +274,166 @@ The following tools will be available:
   }
 }
 
+function showStatus(): void {
+  console.log('📊 Current Database Configuration Status\n');
+  
+  const configPath = getClaudeConfigPath();
+  console.log(`Config file: ${configPath}`);
+  
+  // Check if config file exists and has database-mcp configured
+  try {
+    if (fs.existsSync(configPath)) {
+      console.log('✅ Claude Desktop config file exists');
+      try {
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        if (config.mcpServers && config.mcpServers['database-mcp']) {
+          const dbConfig = config.mcpServers['database-mcp'];
+          const dbUrl = dbConfig.env?.DATABASE_URL;
+          
+          console.log('✅ database-mcp server is configured');
+          
+          if (dbUrl) {
+            // Mask password in URL for display
+            const maskedUrl = dbUrl.replace(/:[^:@]*@/, ':***@');
+            console.log(`📂 Current DATABASE_URL: ${maskedUrl}`);
+            
+            // Validate the connection string
+            try {
+              const dbType = detectDatabaseType(dbUrl);
+              validateConnectionString(dbUrl);
+              console.log(`✅ Valid ${dbType} connection string`);
+            } catch (error) {
+              console.log(`❌ Invalid connection string: ${(error as Error).message}`);
+            }
+          } else {
+            console.log('⚠️  No DATABASE_URL configured');
+          }
+          
+          // Check for SSL config
+          if (dbConfig.env?.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
+            console.log('🔒 SSL verification disabled (cloud database)');
+          }
+        } else {
+          console.log('❌ database-mcp server not configured');
+          console.log('💡 Run "database-mcp init" to configure');
+        }
+      } catch (parseError) {
+        console.log('❌ Config file exists but cannot be parsed');
+      }
+    } else {
+      console.log('❌ Claude Desktop config file does not exist');
+      console.log('💡 Run "database-mcp init" to create configuration');
+    }
+  } catch (error) {
+    console.log('⚠️  Unable to check config file');
+    console.log('💡 Run "database-mcp init" to create configuration');
+  }
+  
+  // Check environment variable
+  const envUrl = process.env.DATABASE_URL;
+  if (envUrl) {
+    const maskedEnvUrl = envUrl.replace(/:[^:@]*@/, ':***@');
+    console.log(`\n🌍 Environment DATABASE_URL: ${maskedEnvUrl}`);
+  } else {
+    console.log('\n⚠️  No DATABASE_URL environment variable set');
+  }
+}
+
+function updateDatabaseUrl(newConnectionString?: string): void {
+  console.log('🔄 Updating database connection...\n');
+  
+  if (!newConnectionString) {
+    console.log(`
+❌ Connection string is required
+
+Usage:
+  database-mcp update "postgresql://user:pass@host:port/db"
+  database-mcp update "mysql://user:pass@localhost:3306/mydb"
+  database-mcp update "./database.sqlite"
+`);
+    return;
+  }
+  
+  // Validate the new connection string
+  try {
+    const dbType = detectDatabaseType(newConnectionString);
+    validateConnectionString(newConnectionString);
+    console.log(`✅ Valid ${dbType} connection string detected`);
+  } catch (error) {
+    console.log(`❌ Invalid connection string: ${(error as Error).message}`);
+    return;
+  }
+  
+  const configPath = getClaudeConfigPath();
+  console.log(`Config file: ${configPath}`);
+  
+  // Ensure directory exists
+  const configDir = path.dirname(configPath);
+  if (!fs.existsSync(configDir)) {
+    console.log('📁 Creating Claude config directory...');
+    fs.mkdirSync(configDir, { recursive: true });
+  }
+  
+  let config: any = {};
+  
+  // Read existing config if it exists
+  if (fs.existsSync(configPath)) {
+    try {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      console.log('📖 Found existing configuration');
+    } catch (error) {
+      console.log('⚠️  Existing config file is invalid, creating new one');
+      config = {};
+    }
+  } else {
+    console.log('📝 Creating new configuration file');
+  }
+  
+  // Ensure mcpServers exists
+  if (!config.mcpServers) {
+    config.mcpServers = {};
+  }
+  
+  // Update or create the MCP server configuration
+  config.mcpServers['database-mcp'] = {
+    command: 'database-mcp',
+    env: {
+      DATABASE_URL: newConnectionString
+    }
+  };
+  
+  // Add SSL configuration for cloud databases if needed
+  if (newConnectionString.includes('digitalocean.com') || 
+      newConnectionString.includes('amazonaws.com') || 
+      newConnectionString.includes('azure.com') ||
+      newConnectionString.includes('googleusercontent.com')) {
+    config.mcpServers['database-mcp'].env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    console.log('🔒 Added SSL configuration for cloud database');
+  }
+  
+  // Write the configuration
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log('✅ Configuration updated successfully!');
+    
+    const maskedUrl = newConnectionString.replace(/:[^:@]*@/, ':***@');
+    console.log(`📂 New DATABASE_URL: ${maskedUrl}`);
+    
+    console.log(`
+🎉 Update complete!
+
+Next steps:
+1. Restart Claude Desktop
+2. Start a new conversation
+3. Your database connection has been updated
+
+To check the status: database-mcp status
+`);
+  } catch (error) {
+    console.log(`❌ Failed to update configuration: ${(error as Error).message}`);
+  }
+}
+
 function getClaudeConfigPath(): string {
   const platform = os.platform();
   
@@ -256,4 +449,4 @@ function getClaudeConfigPath(): string {
 
 module.exports = {
     handleCliCommands
-}; 
+};

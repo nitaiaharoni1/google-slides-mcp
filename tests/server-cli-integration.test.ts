@@ -128,9 +128,9 @@ describe('Server CLI Integration', () => {
         cwd: '/tmp' // Run from a different directory to avoid .env file
       });
       
-      expect(stdout).toContain('DATABASE_URL environment variable is required');
+      expect(stdout).toContain('DATABASE_URL is required');
       expect(stdout).toContain('export DATABASE_URL');
-      expect(stdout).toContain('database-mcp --setup');
+      expect(stdout).toContain('database-mcp init');
       expect(stderr).toBe('');
     }, 10000);
 
@@ -225,6 +225,124 @@ describe('Server CLI Integration', () => {
       
       // Should not crash, even if config file access fails
       expect(stdout).toContain('Claude Desktop config location:');
+      expect(stderr).toBe('');
+    }, 10000);
+  });
+
+  describe('Init command behavior', () => {
+    test('init should work with connection string argument', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} init "postgresql://user:pass@localhost:5432/testdb"`, {
+        env: { PATH: process.env.PATH, NODE_ENV: 'test' }
+      });
+      
+      expect(stdout).toContain('Setting up database-mcp');
+      expect(stdout).toContain('Valid postgresql connection string detected');
+      // Note: Config file writing might fail in CI, but validation should work
+      expect(stderr).toBe('');
+    }, 10000);
+
+    test('init should require connection string when no env var', async () => {
+      // Create a clean environment without DATABASE_URL
+      const cleanEnv = { PATH: process.env.PATH, NODE_ENV: 'test' };
+      const { stdout, stderr } = await execAsync(`node ${serverPath} init`, {
+        env: cleanEnv,
+        cwd: '/tmp' // Run from a different directory to avoid .env file
+      });
+      
+      expect(stdout).toContain('DATABASE_URL is required');
+      expect(stdout).toContain('export DATABASE_URL');
+      expect(stdout).toContain('database-mcp init');
+      expect(stderr).toBe('');
+    }, 10000);
+
+    test('init should fallback to DATABASE_URL env var', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} init`, {
+        env: { 
+          ...process.env, 
+          DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb'
+        }
+      });
+      
+      expect(stdout).toContain('Setting up database-mcp');
+      expect(stdout).toContain('Valid postgresql connection string detected');
+      expect(stderr).toBe('');
+    }, 10000);
+
+    test('init should detect invalid connection string', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} init "invalid-connection-string"`, {
+        env: { PATH: process.env.PATH, NODE_ENV: 'test' }
+      });
+      
+      expect(stdout).toContain('Invalid DATABASE_URL');
+      expect(stderr).toBe('');
+    }, 10000);
+  });
+
+  describe('Status command behavior', () => {
+    test('status should show configuration details', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} status`, {
+        env: { PATH: process.env.PATH, NODE_ENV: 'test' }
+      });
+      
+      expect(stdout).toContain('Current Database Configuration Status');
+      expect(stdout).toContain('Config file:');
+      expect(stderr).toBe('');
+    }, 10000);
+  });
+
+  describe('Update command behavior', () => {
+    test('update should require connection string', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} update`, {
+        env: { PATH: process.env.PATH, NODE_ENV: 'test' }
+      });
+      
+      expect(stdout).toContain('Connection string is required');
+      expect(stdout).toContain('Usage:');
+      expect(stderr).toBe('');
+    }, 10000);
+
+    test('update should validate connection string', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} update "postgresql://user:pass@localhost:5432/testdb"`, {
+        env: { PATH: process.env.PATH, NODE_ENV: 'test' }
+      });
+      
+      expect(stdout).toContain('Updating database connection');
+      expect(stdout).toContain('Valid postgresql connection string detected');
+      expect(stderr).toBe('');
+    }, 10000);
+
+    test('update should detect invalid connection string', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} update "invalid-connection-string"`, {
+        env: { PATH: process.env.PATH, NODE_ENV: 'test' }
+      });
+      
+      expect(stdout).toContain('Invalid connection string');
+      expect(stderr).toBe('');
+    }, 10000);
+  });
+
+  describe('Deprecation warnings', () => {
+    test('--setup should show deprecation warning', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} --setup`, {
+        env: { 
+          ...process.env, 
+          DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb'
+        }
+      });
+      
+      expect(stdout).toContain('WARNING: --setup is deprecated');
+      expect(stdout).toContain('Use "database-mcp init" instead');
+      expect(stderr).toBe('');
+    }, 10000);
+
+    test('--configure should show deprecation warning', async () => {
+      const { stdout, stderr } = await execAsync(`node ${serverPath} --configure`, {
+        env: { PATH: process.env.PATH, NODE_ENV: 'test' }
+      });
+      
+      expect(stdout).toContain('WARNING: --configure is deprecated');
+      expect(stdout).toContain('Use "database-mcp init" instead');
+      expect(stdout).toContain('Configuration Instructions');
       expect(stderr).toBe('');
     }, 10000);
   });

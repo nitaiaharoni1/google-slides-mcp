@@ -15,17 +15,30 @@ export DATABASE_URL="mysql://username:password@host:port/database"
 # or
 export DATABASE_URL="./path/to/database.sqlite"
 
-# Automatically configure Claude Desktop
-database-mcp --configure
+# Quick setup with init command
+database-mcp init
 
-# Or configure with database URL directly (no environment variable needed)
-database-mcp --configure "postgresql://username:password@host:port/database?sslmode=require"
+# Or setup with database URL directly (no environment variable needed)
+database-mcp init "postgresql://username:password@host:port/database?sslmode=require"
+
+# Check your current configuration
+database-mcp status
+
+# Update your database connection
+database-mcp update "postgresql://user:pass@newhost:port/db"
 
 # Or use without installing
-npx database-mcp --configure
+npx database-mcp init "postgresql://username:password@host:port/database"
 ```
 
 That's it! The server will automatically detect your OS and configure Claude Desktop for you.
+
+**New in v1.2.4:** Use the simple `database-mcp init` command for streamlined setup!
+
+**Added in v1.2.4:** 
+- ✨ **`database-mcp status`** - Check your current database configuration
+- ✨ **`database-mcp update`** - Update your database connection easily  
+- ⚠️ **Deprecated** `--setup` and `--configure` (still work but show warnings)
 
 **Prefer manual configuration?** Use `database-mcp --find-config` to locate your Claude Desktop config file and get setup instructions.
 
@@ -103,13 +116,19 @@ Choose one of the installation methods below:
    export DATABASE_URL="./path/to/database.sqlite"
    ```
 
-3. **Automatically configure Claude Desktop:**
+3. **Quick setup with init command:**
    ```bash
    # Use environment variable DATABASE_URL
-   database-mcp --configure
+   database-mcp init
    
-   # Or provide database URL directly
-   database-mcp --configure "postgresql://username:password@host:port/database"
+   # Or provide database URL directly (no environment variable needed)
+   database-mcp init "postgresql://username:password@host:port/database"
+   
+   # Check your current configuration
+   database-mcp status
+   
+   # Update database connection if needed
+   database-mcp update "postgresql://user:pass@newhost:port/db"
    ```
    
    This command will:
@@ -123,11 +142,18 @@ Choose one of the installation methods below:
 #### Method 2: Using npx (No Installation)
 
 ```bash
-# Configure Claude Desktop without installing
-npx database-mcp --configure
+# Configure Claude Desktop without installing (recommended)
+npx database-mcp init "postgresql://username:password@host:port/database"
 
-# Or provide database URL directly
-npx database-mcp --configure "mysql://username:password@localhost:3306/database"
+# Or use environment variable
+export DATABASE_URL="mysql://username:password@localhost:3306/database"
+npx database-mcp init
+
+# Check status
+npx database-mcp status
+
+# Update database connection
+npx database-mcp update "mysql://user:pass@newhost:3306/db"
 ```
 
 #### Method 3: Manual Configuration
@@ -149,6 +175,8 @@ If you prefer to configure manually or the automatic configuration doesn't work:
    - Whether the file already exists
    - Whether Database MCP is already configured
    - Complete manual configuration instructions
+   
+   **Tip:** Instead of manual configuration, try `database-mcp init` for automatic setup!
 
 3. **Manually edit Claude Desktop configuration:**
    
@@ -230,6 +258,39 @@ The Database MCP server provides 13 powerful tools for database interaction:
 ### Administrative Tools
 - **`get_connection_info`** - Check connection status and database details
 
+## 🖥️ CLI Commands
+
+The database-mcp package provides several command-line tools for easy configuration:
+
+### Setup Commands
+- **`database-mcp init [connection_string]`** - Interactive setup for Claude Desktop
+  ```bash
+  database-mcp init "postgresql://user:pass@host:port/db"
+  database-mcp init  # Uses DATABASE_URL environment variable
+  ```
+
+### Management Commands  
+- **`database-mcp status`** - Show current database configuration and connection status
+  ```bash
+  database-mcp status
+  ```
+
+- **`database-mcp update <connection_string>`** - Update database connection string
+  ```bash
+  database-mcp update "mysql://user:pass@newhost:3306/db"
+  ```
+
+### Information Commands
+- **`database-mcp --help/-h`** - Show help information
+- **`database-mcp --version/-v`** - Show version information
+- **`database-mcp --find-config`** - Show Claude Desktop config file location
+
+### Deprecated Commands ⚠️
+- **`database-mcp --setup`** - Use `database-mcp init` instead
+- **`database-mcp --configure`** - Use `database-mcp init` instead
+
+These deprecated commands still work but will show warning messages encouraging use of the new commands.
+
 ## 💡 Usage Examples
 
 ### Basic Database Exploration
@@ -258,6 +319,21 @@ The Database MCP server provides 13 powerful tools for database interaction:
 "Find all tables related to user management"
 "What columns contain the word 'email'?"
 "Show me all tables that reference the users table"
+```
+
+### CLI Management Examples
+```bash
+# Initial setup
+database-mcp init "postgresql://user:pass@host:port/db"
+
+# Check current configuration
+database-mcp status
+
+# Update to a different database
+database-mcp update "mysql://user:pass@newhost:3306/newdb"
+
+# Find config file location
+database-mcp --find-config
 ```
 
 ## 🔧 Configuration
