@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database MCP Server - Pitch Deck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            display: none;
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 60px;
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 40px;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #718096;
+            margin-bottom: 40px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .metric-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .metric-label {
+            font-size: 1rem;
+            color: #718096;
+            margin-top: 10px;
+        }
+
+        .competitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .competitor-card {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            text-align: left;
+        }
+
+        .competitor-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .competitor-funding {
+            font-size: 1.1rem;
+            color: #38a169;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .competitor-valuation {
+            font-size: 0.95rem;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .competitor-description {
+            font-size: 0.9rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .feature-list {
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .feature-list li {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #38a169;
+            font-weight: bold;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4a5568;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .value-prop {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .value-prop h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .value-prop p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .tech-badge {
+            background: #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .market-size {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+        }
+
+        .market-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .market-value {
+            font-size: 1.5rem;
+        }
+
+        .market-label {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <div class="slide-counter">
+            <span id="current-slide">1</span> / <span id="total-slides">12</span>
+        </div>
+
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <div class="logo">DB</div>
+            <h1>Database MCP Server</h1>
+            <p class="subtitle">The Universal AI Interface for Enterprise Databases</p>
+            <div class="value-prop">
+                <h3>Democratizing Database Access Through Natural Language</h3>
+                <p>Connecting any database to any AI assistant through the standardized Model Context Protocol</p>
+            </div>
+            <div class="tech-stack">
+                <span class="tech-badge">PostgreSQL</span>
+                <span class="tech-badge">MySQL</span>
+                <span class="tech-badge">SQLite</span>
+                <span class="tech-badge">TypeScript</span>
+                <span class="tech-badge">MCP Protocol</span>
+            </div>
+        </div>
+
+        <!-- Slide 2: Problem -->
+        <div class="slide">
+            <h2>The Database Access Crisis</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">80%</span>
+                    <div class="metric-label">of business users can't access their own data</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">$3.1T</span>
+                    <div class="metric-label">lost annually due to poor data access</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">6 weeks</span>
+                    <div class="metric-label">average time to get a simple database report</div>
+                </div>
+            </div>
+            <ul class="feature-list">
+                <li>Technical teams are overwhelmed with ad-hoc data requests</li>
+                <li>Business users wait weeks for simple queries</li>
+                <li>Every AI integration requires custom database connectors</li>
+                <li>No standardized way to connect AI tools to enterprise databases</li>
+                <li>Fragmented ecosystem with M×N integration problem</li>
+            </ul>
+        </div>
+
+        <!-- Slide 3: Solution -->
+        <div class="slide">
+            <h2>Our Solution: Universal Database MCP</h2>
+            <div class="value-prop">
+                <h3>One Protocol. Every Database. Any AI Assistant.</h3>
+                <p>The first comprehensive database server for the Model Context Protocol ecosystem</p>
+            </div>
+            <ul class="feature-list">
+                <li>Natural language queries across PostgreSQL, MySQL, and SQLite</li>
+                <li>Comprehensive database introspection and analytics</li>
+                <li>Plug-and-play integration with Claude Desktop and any MCP client</li>
+                <li>Enterprise-grade security with read-only operations</li>
+                <li>Automatic SSL detection and cloud database support</li>
+                <li>One-command setup with CLI tools</li>
+            </ul>
+            <p>Transform: <em>"Can you run a query to show me last quarter's sales by region?"</em><br>
+            Into: Instant results with visualizations and insights.</p>
+        </div>
+
+        <!-- Slide 4: Market Opportunity -->
+        <div class="slide">
+            <h2>Massive Market Opportunity</h2>
+            <div class="market-size">
+                <div class="market-circle">
+                    <div class="market-value">$260B</div>
+                    <div class="market-label">Big Data Analytics</div>
+                </div>
+                <div class="market-circle">
+                    <div class="market-value">$85B</div>
+                    <div class="market-label">Business Intelligence</div>
+                </div>
+                <div class="market-circle">
+                    <div class="market-value">$13B</div>
+                    <div class="market-label">Database Tools</div>
+                </div>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">🚀</span>
+                    <div class="metric-label">MCP adoption accelerating rapidly across enterprise</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">🎯</span>
+                    <div class="metric-label">First-mover advantage in MCP database space</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">📈</span>
+                    <div class="metric-label">AI-powered database tools growing 40% YoY</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Competition & Market Validation -->
+        <div class="slide">
+            <h2>Validated Market with Funded Competitors</h2>
+            <div class="competitor-grid">
+                <div class="competitor-card">
+                    <div class="competitor-name">DataChat</div>
+                    <div class="competitor-funding">$29M Raised</div>
+                    <div class="competitor-valuation">Series A - Redline Capital</div>
+                    <div class="competitor-description">No-code conversational analytics platform</div>
+                </div>
+                <div class="competitor-card">
+                    <div class="competitor-name">ThoughtSpot</div>
+                    <div class="competitor-funding">$674M Raised</div>
+                    <div class="competitor-valuation">$4.2B Valuation - Unicorn</div>
+                    <div class="competitor-description">Search & AI-driven analytics platform</div>
+                </div>
+                <div class="competitor-card">
+                    <div class="competitor-name">Sisense</div>
+                    <div class="competitor-funding">$274M Raised</div>
+                    <div class="competitor-valuation">$1B+ Valuation - Unicorn</div>
+                    <div class="competitor-description">BI with AI/ML and embeddable analytics</div>
+                </div>
+                <div class="competitor-card">
+                    <div class="competitor-name">Tableau</div>
+                    <div class="competitor-funding">Acquired</div>
+                    <div class="competitor-valuation">$15.7B by Salesforce</div>
+                    <div class="competitor-description">Data visualization and BI leader</div>
+                </div>
+            </div>
+            <p><strong>Market Validation:</strong> Competitors have raised over $1B+ combined, proving massive demand for database AI solutions</p>
+        </div>
+
+        <!-- Slide 6: Competitive Advantages -->
+        <div class="slide">
+            <h2>Our Competitive Advantages</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">🏁</span>
+                    <div class="metric-label"><strong>First Mover</strong><br>Leading MCP database server</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">🌐</span>
+                    <div class="metric-label"><strong>Protocol Native</strong><br>Built for MCP from ground up</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">⚡</span>
+                    <div class="metric-label"><strong>Developer First</strong><br>CLI-first, easy integration</div>
+                </div>
+            </div>
+            <ul class="feature-list">
+                <li><strong>Timing Advantage:</strong> Riding the MCP adoption wave early</li>
+                <li><strong>Comprehensive Coverage:</strong> PostgreSQL + MySQL + SQLite support</li>
+                <li><strong>Enterprise Ready:</strong> SSL, security, cloud database support</li>
+                <li><strong>Open Source Foundation:</strong> Community-driven development</li>
+                <li><strong>Ecosystem Play:</strong> Works with any MCP-compatible AI client</li>
+                <li><strong>Technical Excellence:</strong> 100% test coverage, TypeScript</li>
+            </ul>
+        </div>
+
+        <!-- Slide 7: Product Demo -->
+        <div class="slide">
+            <h2>Product Demo</h2>
+            <div style="background: #1a202c; color: #68d391; padding: 30px; border-radius: 15px; font-family: 'Courier New', monospace; text-align: left; margin: 30px 0;">
+                <div style="margin-bottom: 20px;">
+                    <span style="color: #9f7aea;">$</span> npm install -g database-mcp<br>
+                    <span style="color: #9f7aea;">$</span> database-mcp init "postgresql://user:pass@host:5432/db"<br>
+                    <span style="color: #68d391;">✅ Claude Desktop configured successfully!</span>
+                </div>
+                <div style="margin-top: 30px; padding: 20px; background: #2d3748; border-radius: 10px;">
+                    <div style="color: #e2e8f0; margin-bottom: 10px;"><strong>User:</strong> "Show me our top 10 customers by revenue this quarter"</div>
+                    <div style="color: #68d391;"><strong>AI:</strong> Here are your top 10 customers by revenue for Q1 2025:</div>
+                    <div style="color: #9f7aea; font-size: 0.9rem; margin-top: 10px;">
+                        1. Enterprise Corp - $125,000<br>
+                        2. Tech Solutions - $98,500<br>
+                        3. Global Industries - $87,200<br>
+                        ...
+                    </div>
+                </div>
+            </div>
+            <p><strong>Result:</strong> Complex SQL query executed in seconds with natural language</p>
+        </div>
+
+        <!-- Slide 8: Go-to-Market Strategy -->
+        <div class="slide">
+            <h2>Go-to-Market Strategy</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">🎯</span>
+                    <div class="metric-label"><strong>Phase 1: Developer Community</strong><br>Open source growth, GitHub stars</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">🏢</span>
+                    <div class="metric-label"><strong>Phase 2: Enterprise</strong><br>Freemium to paid conversion</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">🤝</span>
+                    <div class="metric-label"><strong>Phase 3: Partnerships</strong><br>Cloud providers, AI platforms</div>
+                </div>
+            </div>
+            <ul class="feature-list">
+                <li><strong>Bottom-up Adoption:</strong> Developers discover via GitHub, NPM</li>
+                <li><strong>Community Building:</strong> MCP ecosystem participation</li>
+                <li><strong>Enterprise Sales:</strong> Support, SLA, advanced features</li>
+                <li><strong>Partner Channel:</strong> Database vendors, cloud providers</li>
+                <li><strong>Content Marketing:</strong> Technical tutorials, case studies</li>
+            </ul>
+        </div>
+
+        <!-- Slide 9: Business Model -->
+        <div class="slide">
+            <h2>Business Model</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">FREE</span>
+                    <div class="metric-label"><strong>Open Source</strong><br>Basic MCP server functionality</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">$99/mo</span>
+                    <div class="metric-label"><strong>Pro</strong><br>Advanced analytics, support</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">$499/mo</span>
+                    <div class="metric-label"><strong>Enterprise</strong><br>SSO, compliance, SLA</div>
+                </div>
+            </div>
+            <ul class="feature-list">
+                <li><strong>Freemium Model:</strong> Open source core with paid enterprise features</li>
+                <li><strong>Subscription Revenue:</strong> Recurring monthly/annual plans</li>
+                <li><strong>Support & Services:</strong> Implementation, training, custom integrations</li>
+                <li><strong>Marketplace:</strong> Database connector ecosystem</li>
+                <li><strong>Enterprise Licensing:</strong> On-premise deployments</li>
+            </ul>
+        </div>
+
+        <!-- Slide 10: Financial Projections -->
+        <div class="slide">
+            <h2>Financial Projections</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">Year 1</span>
+                    <div class="metric-label">$50K ARR<br>500 users, 50 paid</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">Year 2</span>
+                    <div class="metric-label">$500K ARR<br>5K users, 500 paid</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">Year 3</span>
+                    <div class="metric-label">$2M ARR<br>20K users, 100 enterprise</div>
+                </div>
+            </div>
+            <ul class="feature-list">
+                <li><strong>Revenue Drivers:</strong> Freemium conversion, enterprise upgrades</li>
+                <li><strong>Key Metrics:</strong> Monthly active users, conversion rate, ARPU</li>
+                <li><strong>Unit Economics:</strong> Low acquisition cost, high lifetime value</li>
+                <li><strong>Scalability:</strong> Software-only, minimal incremental costs</li>
+            </ul>
+        </div>
+
+        <!-- Slide 11: Funding Ask -->
+        <div class="slide">
+            <h2>Funding Ask: $2M Seed Round</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">40%</span>
+                    <div class="metric-label"><strong>Engineering</strong><br>Core team, product development</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">30%</span>
+                    <div class="metric-label"><strong>Go-to-Market</strong><br>Sales, marketing, partnerships</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">30%</span>
+                    <div class="metric-label"><strong>Operations</strong><br>Infrastructure, legal, runway</div>
+                </div>
+            </div>
+            <ul class="feature-list">
+                <li><strong>18-month runway</strong> to reach $500K ARR</li>
+                <li><strong>Team expansion:</strong> 2 engineers, 1 sales, 1 marketing</li>
+                <li><strong>Product development:</strong> Enterprise features, additional databases</li>
+                <li><strong>Market expansion:</strong> Partnership development, community growth</li>
+                <li><strong>Next round:</strong> Series A at $10M+ valuation in 18 months</li>
+            </ul>
+        </div>
+
+        <!-- Slide 12: Thank You -->
+        <div class="slide">
+            <div class="logo">DB</div>
+            <h1>Thank You</h1>
+            <div class="value-prop">
+                <h3>Ready to democratize database access?</h3>
+                <p>Join us in building the future of AI-powered data interaction</p>
+            </div>
+            <div style="margin: 40px 0;">
+                <p style="font-size: 1.5rem; font-weight: 600;">Contact Information</p>
+                <p>📧 founder@database-mcp.com</p>
+                <p>🌐 github.com/nitaiaharoni1/database-mcp</p>
+                <p>💼 linkedin.com/in/database-mcp</p>
+            </div>
+            <div class="tech-stack">
+                <span class="tech-badge">Let's Connect</span>
+                <span class="tech-badge">Questions Welcome</span>
+                <span class="tech-badge">Demo Available</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" onclick="changeSlide(-1)">← Previous</button>
+        <button class="nav-btn" onclick="changeSlide(1)">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('current-slide').textContent = currentSlide + 1;
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+
+        // Auto-advance slides every 30 seconds (uncomment if desired)
+        // setInterval(() => changeSlide(1), 30000);
+    </script>
+</body>
+</html>
