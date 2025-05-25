@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database MCP Server - Pitch Deck</title>
+    <title>dabi - Pitch Deck</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -31,58 +33,106 @@
             width: 90%;
             max-width: 1200px;
             height: 80vh;
-            background: white;
+            background: linear-gradient(135deg, #4a5568, #2d3748, #1a202c);
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             padding: 60px;
             text-align: center;
-            animation: slideIn 0.5s ease-out;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #4a5568;
         }
 
         .slide.active {
             display: block;
+            opacity: 1;
+            transform: scale(1);
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .slide-enter-next {
+            animation: slideInRight 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-enter-prev {
+            animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-exit-next {
+            animation: slideOutLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-exit-prev {
+            animation: slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideInRight {
+            0% { transform: translateX(100%) scale(0.9); opacity: 0; }
+            100% { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            0% { transform: translateX(-100%) scale(0.9); opacity: 0; }
+            100% { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+        @keyframes slideOutLeft {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            100% { transform: translateX(-100%) scale(0.9); opacity: 0; }
+        }
+
+        @keyframes slideOutRight {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            100% { transform: translateX(100%) scale(0.9); opacity: 0; }
+        }
+
+        .title-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out 0.2s both;
+        }
+
+        .title-icon {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 6px 15px rgba(102, 126, 234, 0.6));
         }
 
         h1 {
             font-size: 3.5rem;
             font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: white;
+            margin: 0;
+            text-shadow: 0 4px 12px rgba(102, 126, 234, 0.8);
         }
 
         h2 {
             font-size: 2.5rem;
             font-weight: 600;
-            color: #2d3748;
+            color: #f7fafc;
             margin-bottom: 40px;
         }
 
         h3 {
             font-size: 1.8rem;
             font-weight: 600;
-            color: #4a5568;
+            color: #e2e8f0;
             margin-bottom: 20px;
         }
 
         p {
             font-size: 1.3rem;
             line-height: 1.6;
-            color: #4a5568;
+            color: #cbd5e0;
             margin-bottom: 20px;
         }
 
         .subtitle {
             font-size: 1.5rem;
-            color: #718096;
+            color: #a0aec0;
             margin-bottom: 40px;
         }
 
@@ -94,22 +144,58 @@
         }
 
         .metric-card {
-            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            background: linear-gradient(135deg, #1a202c, #2d3748);
             padding: 30px;
             border-radius: 15px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #4a5568;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+            border-color: #667eea;
+        }
+
+        .metric-card:hover:before {
+            opacity: 1;
+        }
+
+        /* Ensure smooth animation completion */
+        .animate__animated {
+            animation-fill-mode: both;
+        }
+
+        .metric-card, .competitor-card, .tech-badge, .market-circle {
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
         }
 
         .metric-number {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #667eea;
+            color: #90cdf4;
             display: block;
         }
 
         .metric-label {
             font-size: 1rem;
-            color: #718096;
+            color: #e2e8f0;
             margin-top: 10px;
         }
 
@@ -121,36 +207,44 @@
         }
 
         .competitor-card {
-            background: #f8fafc;
+            background: linear-gradient(135deg, #1a202c, #2d3748);
             padding: 25px;
             border-radius: 12px;
             border-left: 4px solid #667eea;
+            border: 1px solid #4a5568;
             text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .competitor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            border-color: #90cdf4;
         }
 
         .competitor-name {
             font-size: 1.3rem;
             font-weight: 600;
-            color: #2d3748;
+            color: #f7fafc;
             margin-bottom: 10px;
         }
 
         .competitor-funding {
             font-size: 1.1rem;
-            color: #38a169;
+            color: #68d391;
             font-weight: 600;
             margin-bottom: 8px;
         }
 
         .competitor-valuation {
             font-size: 0.95rem;
-            color: #667eea;
+            color: #90cdf4;
             margin-bottom: 12px;
         }
 
         .competitor-description {
             font-size: 0.9rem;
-            color: #718096;
+            color: #cbd5e0;
             line-height: 1.4;
         }
 
@@ -161,7 +255,7 @@
 
         .feature-list li {
             font-size: 1.2rem;
-            color: #4a5568;
+            color: #cbd5e0;
             margin-bottom: 15px;
             padding-left: 20px;
             position: relative;
@@ -171,7 +265,7 @@
             content: "✓";
             position: absolute;
             left: 0;
-            color: #38a169;
+            color: #68d391;
             font-weight: bold;
         }
 
@@ -186,48 +280,140 @@
         }
 
         .nav-btn {
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
+            background: linear-gradient(135deg, #1a202c, #2d3748);
+            border: 1px solid #4a5568;
             padding: 12px 24px;
             border-radius: 25px;
             cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
-            color: #4a5568;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
+            color: #e2e8f0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-btn:hover:before {
+            left: 100%;
         }
 
         .nav-btn:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            color: #90cdf4;
+            border-color: #667eea;
+        }
+
+        .nav-btn:active {
+            transform: translateY(-1px) scale(1.02);
         }
 
         .slide-counter {
             position: fixed;
             top: 30px;
             right: 30px;
-            background: rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg, #1a202c, #2d3748);
             padding: 10px 20px;
             border-radius: 20px;
             font-size: 0.9rem;
-            color: #4a5568;
+            color: #e2e8f0;
             font-weight: 600;
+            z-index: 1000;
+            border: 1px solid #4a5568;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .persistent-logo {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .persistent-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .persistent-logo .logo-icon {
+            width: 32px;
+            height: 32px;
+            margin-top: 6px;
+        }
+
+        .persistent-logo .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.8));
+        }
+
+        .persistent-logo .logo-text {
+            font-size: 1.2rem;
+            color: white;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(102, 126, 234, 0.6);
+            white-space: nowrap;
+            line-height: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
         }
 
         .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 20px;
+            width: 120px;
+            height: 120px;
             margin: 0 auto 30px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            color: white;
-            font-weight: bold;
+            position: relative;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 5px;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(2px); }
+            50% { transform: translateY(-2px); }
+        }
+
+        .logo-text {
+            font-size: 0.8rem;
+            color: #4a5568;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            width: max-content;
         }
 
         .value-prop {
@@ -236,6 +422,8 @@
             padding: 30px;
             border-radius: 15px;
             margin: 30px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
         .value-prop h3 {
@@ -256,12 +444,20 @@
         }
 
         .tech-badge {
-            background: #e2e8f0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             padding: 10px 20px;
             border-radius: 25px;
             font-size: 0.9rem;
-            color: #4a5568;
+            color: white;
             font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tech-badge:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
         .market-size {
@@ -295,14 +491,24 @@
 </head>
 <body>
     <div class="slideshow-container">
+        <div class="persistent-logo">
+            <div class="logo-icon">
+                <img src="dabi-icon.svg" alt="Dabi Logo">
+            </div>
+            <div class="logo-text">dabi</div>
+        </div>
+        
         <div class="slide-counter">
-            <span id="current-slide">1</span> / <span id="total-slides">12</span>
+            <span id="current-slide">1</span> / <span id="total-slides">13</span>
         </div>
 
         <!-- Slide 1: Title -->
         <div class="slide active">
-            <div class="logo">DB</div>
-            <h1>Database MCP Server</h1>
+            <div class="title-logo">
+                <img src="dabi-icon.svg" alt="Dabi Logo" class="title-icon">
+                <h1>dabi</h1>
+            </div>
+            <p class="subtitle">DB made easy with AI</p>
             <p class="subtitle">The Universal AI Interface for Enterprise Databases</p>
             <div class="value-prop">
                 <h3>Democratizing Database Access Through Natural Language</h3>
@@ -319,50 +525,84 @@
 
         <!-- Slide 2: Problem -->
         <div class="slide">
-            <h2>The Database Access Crisis</h2>
+            <h2>The Data Access Bottleneck</h2>
             <div class="metrics-grid">
                 <div class="metric-card">
-                    <span class="metric-number">80%</span>
-                    <div class="metric-label">of business users can't access their own data</div>
+                    <span class="metric-number">3 days</span>
+                    <div class="metric-label">average wait time for a simple sales report</div>
                 </div>
                 <div class="metric-card">
-                    <span class="metric-number">$3.1T</span>
-                    <div class="metric-label">lost annually due to poor data access</div>
+                    <span class="metric-number">47%</span>
+                    <div class="metric-label">of business decisions delayed by data access issues</div>
                 </div>
                 <div class="metric-card">
-                    <span class="metric-number">6 weeks</span>
-                    <div class="metric-label">average time to get a simple database report</div>
+                    <span class="metric-number">$890M</span>
+                    <div class="metric-label">spent annually on BI tools that 90% of employees can't use</div>
                 </div>
             </div>
             <ul class="feature-list">
-                <li>Technical teams are overwhelmed with ad-hoc data requests</li>
-                <li>Business users wait weeks for simple queries</li>
-                <li>Every AI integration requires custom database connectors</li>
-                <li>No standardized way to connect AI tools to enterprise databases</li>
-                <li>Fragmented ecosystem with M×N integration problem</li>
+                <li><strong>SQL Skills Shortage:</strong> Only 3% of business users can write SQL queries</li>
+                <li><strong>Data Team Overload:</strong> Data engineers spend 60% of time on ad-hoc requests</li>
+                <li><strong>AI Integration Hell:</strong> Each AI tool needs custom database connectors (150+ tools, 50+ databases)</li>
+                <li><strong>No Universal Standard:</strong> Companies rebuild the same database integrations repeatedly</li>
+                <li><strong>Speed Kills Innovation:</strong> Teams abandon data-driven ideas due to access friction</li>
             </ul>
         </div>
 
         <!-- Slide 3: Solution -->
         <div class="slide">
-            <h2>Our Solution: Universal Database MCP</h2>
+            <h2>dabi: The Universal Database Bridge</h2>
             <div class="value-prop">
-                <h3>One Protocol. Every Database. Any AI Assistant.</h3>
-                <p>The first comprehensive database server for the Model Context Protocol ecosystem</p>
+                <h3>Turn Every Employee Into a Data Analyst in 30 Seconds</h3>
+                <p>One npm install. Zero SQL training. Instant database access through any AI assistant.</p>
             </div>
             <ul class="feature-list">
-                <li>Natural language queries across PostgreSQL, MySQL, and SQLite</li>
-                <li>Comprehensive database introspection and analytics</li>
-                <li>Plug-and-play integration with Claude Desktop and any MCP client</li>
-                <li>Enterprise-grade security with read-only operations</li>
-                <li>Automatic SSL detection and cloud database support</li>
-                <li>One-command setup with CLI tools</li>
+                <li><strong>Plain English Queries:</strong> "Show revenue trends" instead of complex JOIN statements</li>
+                <li><strong>Zero Setup Friction:</strong> Works with existing PostgreSQL, MySQL, SQLite - no migration needed</li>
+                <li><strong>AI-Native Design:</strong> Built for Claude, ChatGPT, and any MCP-compatible AI tool</li>
+                <li><strong>Production Ready:</strong> Read-only by default, enterprise security, SSL auto-detection</li>
+                <li><strong>Database Intelligence:</strong> Automatic schema discovery, relationship mapping, query optimization</li>
+                <li><strong>Developer Experience:</strong> One CLI command replaces weeks of integration work</li>
             </ul>
-            <p>Transform: <em>"Can you run a query to show me last quarter's sales by region?"</em><br>
-            Into: Instant results with visualizations and insights.</p>
+            <p><strong>Before:</strong> <em>"Can you run a query to show me last quarter's sales by region?"</em><br>
+            <strong>After:</strong> Results in 3 seconds, complete with insights and recommendations.</p>
         </div>
 
-        <!-- Slide 4: Market Opportunity -->
+        <!-- Slide 4: Real-Life Use Cases -->
+        <div class="slide">
+            <h2>Real-Life Use Cases</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">🚨</span>
+                    <div class="metric-label"><strong>Anomaly Detection</strong><br>"Show me all transactions over $10k from last month" - Instant fraud detection without SQL knowledge</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">🎧</span>
+                    <div class="metric-label"><strong>Customer Support</strong><br>"Find customers with >5 support tickets this week" - Support teams get answers in seconds, not hours</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">📊</span>
+                    <div class="metric-label"><strong>Business Intelligence</strong><br>"Compare Q4 revenue by region vs last year" - Executives get insights without waiting for data teams</div>
+                </div>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-number">🔍</span>
+                    <div class="metric-label"><strong>Operations Monitoring</strong><br>"Which products have inventory below 100 units?" - Real-time operational insights</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">📈</span>
+                    <div class="metric-label"><strong>Performance Analysis</strong><br>"Show user engagement drop after feature X launch" - Product teams debug issues instantly</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-number">💰</span>
+                    <div class="metric-label"><strong>Financial Reporting</strong><br>"Calculate monthly recurring revenue by customer segment" - Finance gets accurate numbers on-demand</div>
+                </div>
+            </div>
+            <p><strong>Result:</strong> Transform any employee into a data analyst with zero training</p>
+        </div>
+
+        <!-- Slide 5: Market Opportunity -->
         <div class="slide">
             <h2>Massive Market Opportunity</h2>
             <div class="market-size">
@@ -427,57 +667,59 @@
             <p><strong>Market Validation:</strong> Competitors have raised over $1B+ combined, proving massive demand for database AI solutions</p>
         </div>
 
-        <!-- Slide 6: Competitive Advantages -->
+        <!-- Slide 7: Why dabi Wins -->
         <div class="slide">
-            <h2>Our Competitive Advantages</h2>
+            <h2>Why dabi Dominates</h2>
             <div class="metrics-grid">
                 <div class="metric-card">
-                    <span class="metric-number">🏁</span>
-                    <div class="metric-label"><strong>First Mover</strong><br>Leading MCP database server</div>
+                    <span class="metric-number">10x</span>
+                    <div class="metric-label"><strong>Faster Implementation</strong><br>5 minutes vs 8 weeks for traditional BI setup</div>
                 </div>
                 <div class="metric-card">
-                    <span class="metric-number">🌐</span>
-                    <div class="metric-label"><strong>Protocol Native</strong><br>Built for MCP from ground up</div>
+                    <span class="metric-number">$0</span>
+                    <div class="metric-label"><strong>Training Cost</strong><br>No SQL courses, no specialized staff needed</div>
                 </div>
                 <div class="metric-card">
-                    <span class="metric-number">⚡</span>
-                    <div class="metric-label"><strong>Developer First</strong><br>CLI-first, easy integration</div>
+                    <span class="metric-number">99.9%</span>
+                    <div class="metric-label"><strong>User Adoption</strong><br>Anyone who can chat can query databases</div>
                 </div>
             </div>
             <ul class="feature-list">
-                <li><strong>Timing Advantage:</strong> Riding the MCP adoption wave early</li>
-                <li><strong>Comprehensive Coverage:</strong> PostgreSQL + MySQL + SQLite support</li>
-                <li><strong>Enterprise Ready:</strong> SSL, security, cloud database support</li>
-                <li><strong>Open Source Foundation:</strong> Community-driven development</li>
-                <li><strong>Ecosystem Play:</strong> Works with any MCP-compatible AI client</li>
-                <li><strong>Technical Excellence:</strong> 100% test coverage, TypeScript</li>
+                <li><strong>Network Effects:</strong> More AI tools adopting MCP = stronger moat</li>
+                <li><strong>Zero Lock-in:</strong> Works with existing databases - no vendor dependence</li>
+                <li><strong>Community Velocity:</strong> Open source drives rapid feature development</li>
+                <li><strong>Technical Moat:</strong> Deep database introspection and query optimization</li>
+                <li><strong>Distribution Advantage:</strong> Rides on ChatGPT, Claude, and emerging AI platforms</li>
+                <li><strong>Cost Disruption:</strong> 1/10th the cost of traditional BI solutions</li>
             </ul>
         </div>
 
-        <!-- Slide 7: Product Demo -->
+        <!-- Slide 8: Live Demo -->
         <div class="slide">
-            <h2>Product Demo</h2>
+            <h2>See It In Action</h2>
             <div style="background: #1a202c; color: #68d391; padding: 30px; border-radius: 15px; font-family: 'Courier New', monospace; text-align: left; margin: 30px 0;">
                 <div style="margin-bottom: 20px;">
-                    <span style="color: #9f7aea;">$</span> npm install -g database-mcp<br>
-                    <span style="color: #9f7aea;">$</span> database-mcp init "postgresql://user:pass@host:5432/db"<br>
-                    <span style="color: #68d391;">✅ Claude Desktop configured successfully!</span>
+                    <span style="color: #9f7aea;">$</span> npm install -g @dabi/mcp-server<br>
+                    <span style="color: #9f7aea;">$</span> dabi connect "postgresql://prod-db:5432/analytics"<br>
+                    <span style="color: #68d391;">✅ Connected to 47 tables, 312 columns. Ready!</span>
                 </div>
                 <div style="margin-top: 30px; padding: 20px; background: #2d3748; border-radius: 10px;">
-                    <div style="color: #e2e8f0; margin-bottom: 10px;"><strong>User:</strong> "Show me our top 10 customers by revenue this quarter"</div>
-                    <div style="color: #68d391;"><strong>AI:</strong> Here are your top 10 customers by revenue for Q1 2025:</div>
-                    <div style="color: #9f7aea; font-size: 0.9rem; margin-top: 10px;">
-                        1. Enterprise Corp - $125,000<br>
-                        2. Tech Solutions - $98,500<br>
-                        3. Global Industries - $87,200<br>
-                        ...
+                    <div style="color: #e2e8f0; margin-bottom: 10px;"><strong>CEO:</strong> "Which customers haven't ordered in 60 days but spent >$50k last year?"</div>
+                    <div style="color: #68d391; margin-bottom: 15px;"><strong>dabi:</strong> Found 23 at-risk customers worth $1.2M in potential churn:</div>
+                    <div style="color: #90cdf4; font-size: 0.9rem;">
+                        • GlobalTech Inc - $180k last year, 73 days silent<br>
+                        • MegaCorp LLC - $95k last year, 68 days silent<br>
+                        • DataFlow Systems - $78k last year, 84 days silent<br>
+                    </div>
+                    <div style="color: #f687b3; margin-top: 10px; font-size: 0.9rem;">
+                        💡 Suggested action: Launch retention campaign targeting these 23 accounts
                     </div>
                 </div>
             </div>
-            <p><strong>Result:</strong> Complex SQL query executed in seconds with natural language</p>
+            <p><strong>Impact:</strong> CEO just prevented $1.2M churn in 30 seconds. No data team involved.</p>
         </div>
 
-        <!-- Slide 8: Go-to-Market Strategy -->
+        <!-- Slide 9: Go-to-Market Strategy -->
         <div class="slide">
             <h2>Go-to-Market Strategy</h2>
             <div class="metrics-grid">
@@ -503,7 +745,7 @@
             </ul>
         </div>
 
-        <!-- Slide 9: Business Model -->
+        <!-- Slide 10: Business Model -->
         <div class="slide">
             <h2>Business Model</h2>
             <div class="metrics-grid">
@@ -529,7 +771,7 @@
             </ul>
         </div>
 
-        <!-- Slide 10: Financial Projections -->
+        <!-- Slide 11: Financial Projections -->
         <div class="slide">
             <h2>Financial Projections</h2>
             <div class="metrics-grid">
@@ -554,7 +796,7 @@
             </ul>
         </div>
 
-        <!-- Slide 11: Funding Ask -->
+        <!-- Slide 12: Funding Ask -->
         <div class="slide">
             <h2>Funding Ask: $2M Seed Round</h2>
             <div class="metrics-grid">
@@ -580,9 +822,8 @@
             </ul>
         </div>
 
-        <!-- Slide 12: Thank You -->
+        <!-- Slide 13: Thank You -->
         <div class="slide">
-            <div class="logo">DB</div>
             <h1>Thank You</h1>
             <div class="value-prop">
                 <h3>Ready to democratize database access?</h3>
@@ -590,9 +831,9 @@
             </div>
             <div style="margin: 40px 0;">
                 <p style="font-size: 1.5rem; font-weight: 600;">Contact Information</p>
-                <p>📧 founder@database-mcp.com</p>
-                <p>🌐 github.com/nitaiaharoni1/database-mcp</p>
-                <p>💼 linkedin.com/in/database-mcp</p>
+                <p>📧 hello@dabi.ai</p>
+                <p>🌐 github.com/dabi-ai/core</p>
+                <p>💼 linkedin.com/company/dabi-ai</p>
             </div>
             <div class="tech-stack">
                 <span class="tech-badge">Let's Connect</span>
@@ -603,36 +844,174 @@
     </div>
 
     <div class="navigation">
-        <button class="nav-btn" onclick="changeSlide(-1)">← Previous</button>
-        <button class="nav-btn" onclick="changeSlide(1)">Next →</button>
+        <button id="prevBtn" class="nav-btn" onclick="changeSlide(-1)">← Previous</button>
+        <button id="nextBtn" class="nav-btn" onclick="changeSlide(1)">Next →</button>
     </div>
 
     <script>
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
         const totalSlides = slides.length;
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
         
         document.getElementById('total-slides').textContent = totalSlides;
 
-        function showSlide(n) {
-            slides[currentSlide].classList.remove('active');
-            currentSlide = (n + totalSlides) % totalSlides;
-            slides[currentSlide].classList.add('active');
-            document.getElementById('current-slide').textContent = currentSlide + 1;
+        function updateNavigation() {
+            // Hide previous button on first slide
+            if (currentSlide === 0) {
+                prevBtn.style.opacity = '0';
+                prevBtn.style.pointerEvents = 'none';
+                prevBtn.style.transform = 'translateX(-10px)';
+            } else {
+                prevBtn.style.opacity = '1';
+                prevBtn.style.pointerEvents = 'auto';
+                prevBtn.style.transform = 'translateX(0)';
+            }
+
+            // Hide next button on last slide
+            if (currentSlide === totalSlides - 1) {
+                nextBtn.style.opacity = '0';
+                nextBtn.style.pointerEvents = 'none';
+                nextBtn.style.transform = 'translateX(10px)';
+            } else {
+                nextBtn.style.opacity = '1';
+                nextBtn.style.pointerEvents = 'auto';
+                nextBtn.style.transform = 'translateX(0)';
+            }
+        }
+
+        function showSlide(n, direction = 'next') {
+            if (n < 0 || n >= totalSlides) return;
+            
+            const exitClass = direction === 'next' ? 'slide-exit-next' : 'slide-exit-prev';
+            const enterClass = direction === 'next' ? 'slide-enter-next' : 'slide-enter-prev';
+            
+            // Add exit animation to current slide
+            slides[currentSlide].classList.add(exitClass);
+            
+            setTimeout(() => {
+                slides[currentSlide].classList.remove('active', exitClass);
+                currentSlide = n;
+                
+                // Add enter animation to new slide
+                slides[currentSlide].classList.add('active', enterClass);
+                
+                // Remove enter animation class after animation completes
+                setTimeout(() => {
+                    slides[currentSlide].classList.remove(enterClass);
+                }, 600);
+                
+                document.getElementById('current-slide').textContent = currentSlide + 1;
+                updateNavigation();
+                
+                // Add staggered animations to slide content
+                animateSlideContent(direction);
+            }, 200);
+        }
+
+        function cleanupAnimations(element) {
+            // Remove any lingering animation classes and reset styles
+            element.classList.remove('animate__animated', 'animate__fadeIn', 'animate__fadeInRight', 'animate__fadeInLeft');
+            element.style.animationDelay = '';
+            element.style.transform = '';
+            element.style.opacity = '';
+        }
+
+        function animateSlideContent(direction = 'next') {
+            const currentSlideElement = slides[currentSlide];
+            
+            // Clean up any previous animations first
+            const allAnimatableElements = currentSlideElement.querySelectorAll('h2, h3, p, .feature-list li, .metric-card, .competitor-card, .tech-badge, .market-circle');
+            allAnimatableElements.forEach(cleanupAnimations);
+            
+            // Text elements - fade in only
+            const textElements = currentSlideElement.querySelectorAll('h2, h3, p, .feature-list li');
+            const cardElements = currentSlideElement.querySelectorAll('.metric-card, .competitor-card, .tech-badge, .market-circle');
+            
+            const cardAnimationClass = direction === 'next' ? 'animate__fadeInRight' : 'animate__fadeInLeft';
+            
+            // Animate text elements with fade in
+            textElements.forEach((element, index) => {
+                element.style.animationDelay = `${0.05 * index}s`;
+                element.classList.add('animate__animated', 'animate__fadeIn');
+                
+                setTimeout(() => {
+                    cleanupAnimations(element);
+                }, 650 + (50 * index));
+            });
+            
+            // Animate cards with slide from sides
+            cardElements.forEach((element, index) => {
+                element.style.animationDelay = `${0.1 + (0.08 * index)}s`;
+                element.classList.add('animate__animated', cardAnimationClass);
+                
+                setTimeout(() => {
+                    cleanupAnimations(element);
+                }, 950 + (80 * index));
+            });
         }
 
         function changeSlide(direction) {
-            showSlide(currentSlide + direction);
+            const newSlide = currentSlide + direction;
+            const slideDirection = direction > 0 ? 'next' : 'prev';
+            showSlide(newSlide, slideDirection);
         }
+
+        // Initialize navigation state
+        updateNavigation();
+        
+        // Add initial content animation
+        setTimeout(() => {
+            animateSlideContent('next');
+        }, 300);
 
         // Keyboard navigation
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') changeSlide(-1);
-            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft' && currentSlide > 0) changeSlide(-1);
+            if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) changeSlide(1);
+            if (e.key === 'Home') showSlide(0, 'prev');
+            if (e.key === 'End') showSlide(totalSlides - 1, 'next');
         });
 
-        // Auto-advance slides every 30 seconds (uncomment if desired)
-        // setInterval(() => changeSlide(1), 30000);
+        // Touch/swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0 && currentSlide < totalSlides - 1) {
+                    // Swipe left - next slide
+                    changeSlide(1);
+                } else if (diff < 0 && currentSlide > 0) {
+                    // Swipe right - previous slide
+                    changeSlide(-1);
+                }
+            }
+        }
+
+        // Add hover effects to navigation buttons
+        [prevBtn, nextBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.classList.add('animate__animated', 'animate__pulse');
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.classList.remove('animate__animated', 'animate__pulse');
+            });
+        });
     </script>
 </body>
 </html>
