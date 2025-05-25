@@ -321,6 +321,8 @@ npm run test:cli
    ```bash
    npm install
    ```
+   
+   This will automatically set up pre-commit hooks via Husky to ensure code quality.
 
 3. **Configure your database connection:**
    ```bash
@@ -342,6 +344,22 @@ npm run test:cli
    ```bash
    npm run dev
    ```
+
+### Pre-commit Hooks
+
+This project uses **Husky** to enforce code quality standards:
+
+#### 🔒 **Pre-commit Checks** (Run on every commit)
+- ✅ **TypeScript Compilation** - Ensures all code compiles without errors
+- ✅ **Unit Tests** - All 72 unit tests must pass (100% success rate)
+- ✅ **Version Consistency** - Validates package.json version
+
+#### 🚀 **Pre-push Checks** (Run before pushing to remote)
+- ✅ **Clean Build** - Full rebuild from scratch
+- ✅ **Test Coverage** - Comprehensive test suite with coverage report
+- ✅ **Package Verification** - Ensures package can be built for npm
+
+**Note**: These hooks run automatically and will **prevent commits/pushes that fail quality checks**. This ensures the main branch always contains working, tested code.
 
 ### Building and Publishing
 
