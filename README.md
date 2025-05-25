@@ -8,6 +8,9 @@ A Model Context Protocol (MCP) server that provides Claude with direct access to
 # Install globally (recommended)
 npm install -g claude-postgres-mcp
 
+# Set your database connection
+export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
+
 # Automatically configure Claude Desktop
 claude-postgres-mcp --configure
 
@@ -51,7 +54,12 @@ Choose one of the installation methods below:
    npm install -g claude-postgres-mcp
    ```
 
-2. **Automatically configure Claude Desktop:**
+2. **Set your database connection:**
+   ```bash
+   export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
+   ```
+
+3. **Automatically configure Claude Desktop:**
    ```bash
    claude-postgres-mcp --configure
    ```
@@ -62,11 +70,6 @@ Choose one of the installation methods below:
    - Add the PostgreSQL MCP server configuration
    - Use your existing `DATABASE_URL` environment variable
    
-3. **Set your database connection (if not already set):**
-   ```bash
-   export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
-   ```
-
 4. **Restart Claude Desktop** and start chatting!
 
 #### Method 2: Using npx (No Installation)
