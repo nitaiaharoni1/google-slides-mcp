@@ -3,57 +3,114 @@
  * Tests for command-line interface functionality
  */
 
+// Mock database modules to prevent SQLite3 loading issues
+jest.mock('../src/database', () => ({
+  detectDatabaseType: jest.fn(),
+  validateConnectionString: jest.fn(),
+  getConnectionStringExamples: jest.fn(() => ({
+    postgresql: ['postgresql://user:pass@localhost/db'],
+    mysql: ['mysql://user:pass@localhost/db'],
+    sqlite: ['./database.db']
+  }))
+}));
+
+// Mock package.json require
+jest.mock('../../package.json', () => ({
+  version: '1.2.2'
+}), { virtual: true });
+
 import { handleCliCommands } from '../src/cli';
-import { CommandManager } from '../src/cli/command-manager';
-import { formatHelp } from '../src/cli/help-formatter';
-import { configureClaudeDesktop, getClaudeConfigPath, showConfigLocation } from '../src/config/claude';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { detectDatabaseType, validateConnectionString } from '../src/database';
+
+// Mock file system operations
+jest.mock('fs');
+jest.mock('path');
+jest.mock('os');
+
+const mockFs = fs as jest.Mocked<typeof fs>;
+const mockPath = path as jest.Mocked<typeof path>;
+const mockOs = os as jest.Mocked<typeof os>;
+const mockDetectDatabaseType = detectDatabaseType as jest.MockedFunction<typeof detectDatabaseType>;
+const mockValidateConnectionString = validateConnectionString as jest.MockedFunction<typeof validateConnectionString>;
 
 describe('CLI Module', () => {
+  let consoleSpy: jest.SpyInstance;
+  let processExitSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit called');
+    });
+
+    // Reset mocks
+    jest.clearAllMocks();
+    
+    // Reset specific mocks to default behavior
+    mockFs.existsSync.mockReturnValue(false);
+    mockFs.readFileSync.mockReturnValue('{}');
+    mockFs.writeFileSync.mockImplementation();
+    mockFs.mkdirSync.mockImplementation();
+    mockPath.join.mockReturnValue('/mocked/config/claude_desktop_config.json');
+    mockPath.dirname.mockReturnValue('/mocked/config');
+    mockOs.platform.mockReturnValue('darwin');
+    mockOs.homedir.mockReturnValue('/mocked/home');
+    mockDetectDatabaseType.mockReturnValue('postgresql');
+    mockValidateConnectionString.mockReturnValue({ isValid: true, errors: [] });
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+    processExitSpy.mockRestore();
+  });
+
   describe('handleCliCommands', () => {
-    // Mock console methods
-    let consoleSpy: jest.SpyInstance;
-    let processExitSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
-        throw new Error('process.exit called');
-      });
-    });
-
-    afterEach(() => {
-      consoleSpy.mockRestore();
-      processExitSpy.mockRestore();
-    });
-
-    test('should handle help command', () => {
+    test('should handle --help command', () => {
       const result = handleCliCommands(['--help']);
       expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Claude Multi-Database MCP Server'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('database-mcp'));
     });
 
-    test('should handle help with -h flag', () => {
+    test('should handle -h flag', () => {
       const result = handleCliCommands(['-h']);
       expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Claude Multi-Database MCP Server'));
     });
 
-    test('should handle version command', () => {
+    test('should handle --version command', () => {
       const result = handleCliCommands(['--version']);
       expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringMatching(/database-mcp v\d+\.\d+\.\d+/));
     });
 
-    test('should handle configure command', () => {
+    test('should handle -v flag', () => {
+      const result = handleCliCommands(['-v']);
+      expect(result).toBe(true);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringMatching(/database-mcp v\d+\.\d+\.\d+/));
+    });
+
+    test('should handle --configure command', () => {
       const result = handleCliCommands(['--configure']);
       expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Configuration Instructions:'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('DATABASE_URL'));
     });
 
-    test('should handle find-config command', () => {
+    test('should handle --find-config command', () => {
+      // Mock the path operations
+      mockPath.join.mockReturnValue('/mocked/config/path/claude_desktop_config.json');
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/mocked/home');
+      mockFs.existsSync.mockReturnValue(false);
+
       const result = handleCliCommands(['--find-config']);
       expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Claude Desktop config location:'));
     });
 
     test('should handle empty arguments', () => {
@@ -65,167 +122,282 @@ describe('CLI Module', () => {
       const result = handleCliCommands(['--unknown']);
       expect(result).toBe(false);
     });
-  });
 
-  describe('CommandManager', () => {
-    // Mock console methods
-    let consoleSpy: jest.SpyInstance;
-    let processExitSpy: jest.SpyInstance;
+    test('should handle --setup command without DATABASE_URL', () => {
+      // Mock environment variable not being set
+      const originalEnv = process.env.DATABASE_URL;
+      delete process.env.DATABASE_URL;
 
-    beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
-        throw new Error('process.exit called');
-      });
-    });
-
-    afterEach(() => {
-      consoleSpy.mockRestore();
-      processExitSpy.mockRestore();
-    });
-
-    test('should handle help command', () => {
-      expect(() => CommandManager.executeHelp()).toThrow('process.exit called');
-      expect(consoleSpy).toHaveBeenCalled();
-      expect(processExitSpy).toHaveBeenCalledWith(0);
-    });
-
-    test('should handle version command', () => {
-      expect(() => CommandManager.executeVersion()).toThrow('process.exit called');
-      expect(consoleSpy).toHaveBeenCalled();
-      expect(processExitSpy).toHaveBeenCalledWith(0);
-    });
-
-    test('should handle configure command', () => {
-      const result = CommandManager.executeConfigure();
+      const result = handleCliCommands(['--setup']);
       expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('DATABASE_URL environment variable is required'));
+
+      // Restore environment
+      if (originalEnv) {
+        process.env.DATABASE_URL = originalEnv;
+      }
     });
 
-    test('should handle find-config command', () => {
-      const result = CommandManager.executeFindConfig();
+    test('should handle --setup command with valid DATABASE_URL', () => {
+      // Mock environment and file system
+      const originalEnv = process.env.DATABASE_URL;
+      process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb';
+
+      mockPath.join.mockReturnValue('/mocked/config/claude_desktop_config.json');
+      mockPath.dirname.mockReturnValue('/mocked/config');
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/mocked/home');
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('{"mcpServers":{}}');
+      mockFs.writeFileSync.mockImplementation();
+      
+      // Mock database validation
+      mockDetectDatabaseType.mockReturnValue('postgresql');
+      mockValidateConnectionString.mockReturnValue({ isValid: true, errors: [] });
+
+      const result = handleCliCommands(['--setup']);
       expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
-    });
-  });
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Setting up database-mcp'));
 
-  describe('formatHelp', () => {
-    test('should format help text correctly', () => {
-      const packageJson = { name: 'test-app', version: '1.0.0' };
-      const supportedTypes = ['postgresql', 'mysql', 'sqlite'];
-      const examples = {
-        postgresql: ['postgresql://user:pass@localhost/db'],
-        mysql: ['mysql://user:pass@localhost/db'],
-        sqlite: ['./database.db'],
-      };
-
-      const helpText = formatHelp(packageJson, supportedTypes, examples);
-
-      expect(helpText).toContain('test-app v1.0.0');
-      expect(helpText).toContain('Usage:');
-      expect(helpText).toContain('--help');
-      expect(helpText).toContain('postgresql');
-      expect(helpText).toContain('mysql');
-      expect(helpText).toContain('sqlite');
-    });
-  });
-
-  describe('Claude Configuration', () => {
-    test('should get Claude config path', () => {
-      const configPath = getClaudeConfigPath();
-
-      expect(typeof configPath).toBe('string');
-      expect(configPath.length).toBeGreaterThan(0);
-      expect(configPath).toMatch(/claude/i);
+      // Restore environment
+      if (originalEnv) {
+        process.env.DATABASE_URL = originalEnv;
+      } else {
+        delete process.env.DATABASE_URL;
+      }
     });
 
-    test('should show config location without throwing', () => {
-      let consoleSpy: jest.SpyInstance;
-      let processExitSpy: jest.SpyInstance;
+    test('should handle setup with cloud database (adds SSL config)', () => {
+      const originalEnv = process.env.DATABASE_URL;
+      process.env.DATABASE_URL = 'postgresql://user:pass@db.digitalocean.com:5432/db';
 
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
-        throw new Error('process.exit called');
+      mockPath.join.mockReturnValue('/mocked/config/claude_desktop_config.json');
+      mockPath.dirname.mockReturnValue('/mocked/config');
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/mocked/home');
+      mockFs.existsSync.mockReturnValue(false);
+      mockFs.mkdirSync.mockImplementation();
+      mockFs.writeFileSync.mockImplementation();
+      
+      // Mock database validation
+      mockDetectDatabaseType.mockReturnValue('postgresql');
+      mockValidateConnectionString.mockReturnValue({ isValid: true, errors: [] });
+
+      const result = handleCliCommands(['--setup']);
+      expect(result).toBe(true);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Added SSL configuration for cloud database'));
+
+      // Restore environment
+      if (originalEnv) {
+        process.env.DATABASE_URL = originalEnv;
+      } else {
+        delete process.env.DATABASE_URL;
+      }
+    });
+
+    test('should handle setup with invalid DATABASE_URL', () => {
+      const originalEnv = process.env.DATABASE_URL;
+      process.env.DATABASE_URL = 'invalid-connection-string';
+      
+      // Mock database validation to throw error
+      mockDetectDatabaseType.mockImplementation(() => {
+        throw new Error('Invalid connection string');
       });
 
-      try {
-        showConfigLocation();
-        expect(consoleSpy).toHaveBeenCalled();
-      } catch (error) {
-        // If it throws due to process.exit, that's ok
-        if ((error as Error).message !== 'process.exit called') {
-          throw error;
+      const result = handleCliCommands(['--setup']);
+      expect(result).toBe(true);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid DATABASE_URL'));
+
+      // Restore environment
+      if (originalEnv) {
+        process.env.DATABASE_URL = originalEnv;
+      } else {
+        delete process.env.DATABASE_URL;
+      }
+    });
+  });
+
+  describe('Configuration file detection', () => {
+    test('should detect existing config file with database-mcp server', () => {
+      mockPath.join.mockReturnValue('/mocked/config/claude_desktop_config.json');
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/mocked/home');
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(JSON.stringify({
+        mcpServers: {
+          'database-mcp': {
+            command: 'database-mcp',
+            env: { DATABASE_URL: 'postgresql://test' }
+          }
         }
-      } finally {
-        consoleSpy.mockRestore();
-        processExitSpy.mockRestore();
-      }
+      }));
+
+      const result = handleCliCommands(['--find-config']);
+      expect(result).toBe(true);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('database-mcp server already configured'));
     });
 
-    test('should configure Claude Desktop without throwing', () => {
-      let consoleSpy: jest.SpyInstance;
-      let processExitSpy: jest.SpyInstance;
+    test('should detect existing config file without database-mcp server', () => {
+      mockPath.join.mockReturnValue('/mocked/config/claude_desktop_config.json');
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/mocked/home');
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(JSON.stringify({
+        mcpServers: {
+          'other-server': { command: 'other' }
+        }
+      }));
 
-      consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
-        throw new Error('process.exit called');
-      });
+      const result = handleCliCommands(['--find-config']);
+      expect(result).toBe(true);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('database-mcp server not configured'));
+    });
 
-      try {
-        configureClaudeDesktop('postgresql://test:test@localhost/test');
-      } catch (error) {
-        // Configuration may fail due to file system permissions or process.exit
-        // That's expected in a test environment
-        expect(consoleSpy).toHaveBeenCalled();
-      } finally {
-        consoleSpy.mockRestore();
-        processExitSpy.mockRestore();
-      }
+    test('should handle non-existent config file', () => {
+      mockPath.join.mockReturnValue('/mocked/config/claude_desktop_config.json');
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/mocked/home');
+      mockFs.existsSync.mockReturnValue(false);
+
+      const result = handleCliCommands(['--find-config']);
+      expect(result).toBe(true);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Config file does not exist'));
+    });
+
+    test('should handle corrupted config file', () => {
+      mockPath.join.mockReturnValue('/mocked/config/claude_desktop_config.json');
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/mocked/home');
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('invalid json');
+
+      const result = handleCliCommands(['--find-config']);
+      expect(result).toBe(true);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Config file exists but cannot be parsed'));
+    });
+  });
+
+  describe('Platform-specific config paths', () => {
+    test('should return correct path for macOS', () => {
+      mockOs.platform.mockReturnValue('darwin');
+      mockOs.homedir.mockReturnValue('/Users/testuser');
+      mockPath.join.mockReturnValue('/Users/testuser/Library/Application Support/Claude/claude_desktop_config.json');
+
+      handleCliCommands(['--find-config']);
+      expect(mockPath.join).toHaveBeenCalledWith('/Users/testuser', 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json');
+    });
+
+    test('should return correct path for Windows', () => {
+      mockOs.platform.mockReturnValue('win32');
+      mockPath.join.mockReturnValue('C:\\Users\\testuser\\AppData\\Roaming\\Claude\\claude_desktop_config.json');
+      process.env.APPDATA = 'C:\\Users\\testuser\\AppData\\Roaming';
+
+      handleCliCommands(['--find-config']);
+      expect(mockPath.join).toHaveBeenCalledWith('C:\\Users\\testuser\\AppData\\Roaming', 'Claude', 'claude_desktop_config.json');
+    });
+
+    test('should return correct path for Linux', () => {
+      mockOs.platform.mockReturnValue('linux');
+      mockOs.homedir.mockReturnValue('/home/testuser');
+      mockPath.join.mockReturnValue('/home/testuser/.config/claude/claude_desktop_config.json');
+
+      handleCliCommands(['--find-config']);
+      expect(mockPath.join).toHaveBeenCalledWith('/home/testuser', '.config', 'claude', 'claude_desktop_config.json');
+    });
+  });
+
+  describe('Help content validation', () => {
+    test('should include all required information in help', () => {
+      handleCliCommands(['--help']);
+      
+      const helpOutput = consoleSpy.mock.calls.map(call => call[0]).join('\n');
+      
+      // Check for essential help content
+      expect(helpOutput).toContain('Claude Multi-Database MCP Server');
+      expect(helpOutput).toContain('Usage:');
+      expect(helpOutput).toContain('Options:');
+      expect(helpOutput).toContain('--help');
+      expect(helpOutput).toContain('--version');
+      expect(helpOutput).toContain('--configure');
+      expect(helpOutput).toContain('--find-config');
+      expect(helpOutput).toContain('--setup');
+      expect(helpOutput).toContain('DATABASE_URL');
+      expect(helpOutput).toContain('PostgreSQL');
+      expect(helpOutput).toContain('MySQL');
+      expect(helpOutput).toContain('SQLite');
+      expect(helpOutput).toContain('Quick Start');
+    });
+
+    test('should include configuration instructions in configure command', () => {
+      handleCliCommands(['--configure']);
+      
+      const configOutput = consoleSpy.mock.calls.map(call => call[0]).join('\n');
+      
+      expect(configOutput).toContain('Configuration Instructions');
+      expect(configOutput).toContain('DATABASE_URL');
+      expect(configOutput).toContain('Claude Desktop');
+      expect(configOutput).toContain('mcpServers');
+      expect(configOutput).toContain('Restart Claude Desktop');
     });
   });
 });
 
-describe('CLI Integration Tests', () => {
-  describe('Command Line Processing', () => {
-    test('should process help workflow', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      const result = handleCliCommands(['--help']);
-      expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
+describe('CLI Error Handling', () => {
+  test('should handle file system errors gracefully', () => {
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    
+    // Mock file system error
+    mockFs.existsSync.mockImplementation(() => {
+      throw new Error('File system error');
     });
-
-    test('should process configure workflow', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      const result = handleCliCommands(['--configure']);
-      expect(result).toBe(true);
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
-    });
-
-    test('should handle multiple arguments (first wins)', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      const result = handleCliCommands(['--help', '--version']);
-      expect(result).toBe(true); // First valid command should be processed
-
-      consoleSpy.mockRestore();
-    });
+    
+    // Should not throw, but handle gracefully
+    expect(() => {
+      handleCliCommands(['--find-config']);
+    }).not.toThrow();
+    
+    // Should show graceful error message
+    expect(consoleSpy).toHaveBeenCalledWith('⚠️  Unable to check config file');
+    expect(consoleSpy).toHaveBeenCalledWith('💡 Run --setup to create configuration');
+    
+    consoleSpy.mockRestore();
   });
+});
 
-  describe('Error Handling', () => {
-    test('should handle invalid command gracefully', () => {
-      const result = handleCliCommands(['--invalid-command']);
-      expect(result).toBe(false);
+describe('Integration with server.ts', () => {
+  test('should properly separate CLI commands from server startup', () => {
+    // Reset mocks to clean state for this test
+    mockFs.existsSync.mockReturnValue(false);
+    mockFs.readFileSync.mockReturnValue('{}');
+    mockFs.writeFileSync.mockImplementation();
+    mockFs.mkdirSync.mockImplementation();
+    
+    // This test verifies that CLI commands return true to indicate
+    // they were handled and should exit before server startup
+    
+    const cliCommands = ['--help', '-h', '--version', '-v', '--configure', '--find-config'];
+    
+    cliCommands.forEach(command => {
+      const result = handleCliCommands([command]);
+      expect(result).toBe(true);
     });
-
-    test('should handle empty command list', () => {
-      const result = handleCliCommands([]);
-      expect(result).toBe(false);
-    });
+    
+    // Test --setup command separately (it needs special setup)
+    const originalEnv = process.env.DATABASE_URL;
+    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb';
+    
+    const setupResult = handleCliCommands(['--setup']);
+    expect(setupResult).toBe(true);
+    
+    // Restore environment
+    if (originalEnv) {
+      process.env.DATABASE_URL = originalEnv;
+    } else {
+      delete process.env.DATABASE_URL;
+    }
+    
+    // Non-CLI arguments should return false to proceed with server startup
+    expect(handleCliCommands([])).toBe(false);
+    expect(handleCliCommands(['--unknown'])).toBe(false);
   });
 });

@@ -23,7 +23,7 @@
     "clean": "rimraf dist coverage",
     "prepare": "husky",
     "prepublishOnly": "npm run clean && npm run build && npm run test:unit",
-    "postinstall": "echo '\n🎉 Database MCP Server installed successfully!\n📖 Supports PostgreSQL, MySQL, and SQLite\n📖 See README for configuration: https://github.com/nitaiaharoni1/database-mcp#readme\n'",
+    "postinstall": "echo '\n🎉 Database MCP Server installed successfully!\n\n📖 Quick Start:\n   1. Set DATABASE_URL: export DATABASE_URL=\"your_connection_string\"\n   2. Run setup: database-mcp --setup\n   3. Restart Claude Desktop\n\n💡 For help: database-mcp --help\n📖 Documentation: https://github.com/nitaiaharoni1/database-mcp#readme\n'",
     "release": "npm run build && node dist/release.js",
     "release:patch": "npm run build && node dist/release.js patch --yes",
     "release:minor": "npm run build && node dist/release.js minor --yes",

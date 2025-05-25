@@ -11,6 +11,23 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { initializeDatabase, closeDatabase } from './src/database.js';
 import { getToolDefinitions, handleToolCall } from './src/tools/index.js';
 import { SERVER_CONFIG } from './src/config/constants.js';
+import { handleCliCommands } from './src/cli.js';
+
+// Handle CLI commands first, before starting the server
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  
+  // If CLI command was handled, exit
+  if (handleCliCommands(args)) {
+    process.exit(0);
+  }
+  
+  // Otherwise start the MCP server
+  main().catch((error) => {
+    console.error('❌ Fatal error:', error);
+    process.exit(1);
+  });
+}
 
 // Initialize MCP server
 const server = new Server({
@@ -43,12 +60,14 @@ async function main(): Promise<void> {
   try {
     const connectionString = process.env.DATABASE_URL;
     
-    if (connectionString) {
-      await initializeDatabase(connectionString);
-      console.error('✅ Database connected successfully');
-    } else {
-      console.error('⚠️  No DATABASE_URL provided - server will run without database connection');
+    if (!connectionString) {
+      console.error('❌ DATABASE_URL environment variable is required');
+      console.error('💡 Use --help for configuration instructions');
+      process.exit(1);
     }
+
+    await initializeDatabase(connectionString);
+    console.error('✅ Database connected successfully');
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
@@ -71,11 +90,3 @@ process.on('SIGTERM', async () => {
   await closeDatabase();
   process.exit(0);
 });
-
-// Start the server
-if (require.main === module) {
-  main().catch((error) => {
-    console.error('❌ Fatal error:', error);
-    process.exit(1);
-  });
-}
