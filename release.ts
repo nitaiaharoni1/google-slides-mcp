@@ -55,7 +55,7 @@ function runCommand(command: string, description: string): string {
 }
 
 function updatePackageVersion(newVersion: string): void {
-  const packagePath = pathModule.join(__dirname, 'package.json');
+  const packagePath = pathModule.join(process.cwd(), 'package.json');
   const packageContent = fsModule.readFileSync(packagePath, 'utf8');
   const packageData = JSON.parse(packageContent);
   packageData.version = newVersion;
@@ -63,7 +63,7 @@ function updatePackageVersion(newVersion: string): void {
 }
 
 function getCurrentVersion(): string {
-  const packagePath = pathModule.join(__dirname, 'package.json');
+  const packagePath = pathModule.join(process.cwd(), 'package.json');
   const packageContent = fsModule.readFileSync(packagePath, 'utf8');
   const packageData = JSON.parse(packageContent);
   return packageData.version;
