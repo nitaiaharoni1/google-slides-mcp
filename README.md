@@ -1,5 +1,10 @@
 # Database MCP Server
 
+[![GitHub stars](https://img.shields.io/github/stars/nitaiaharoni1/database-mcp?style=social)](https://github.com/nitaiaharoni1/database-mcp/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/nitaiaharoni1/database-mcp?style=social)](https://github.com/nitaiaharoni1/database-mcp/network/members)
+[![npm version](https://img.shields.io/npm/v/database-mcp)](https://www.npmjs.com/package/database-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/database-mcp)](https://www.npmjs.com/package/database-mcp)
+
 A Model Context Protocol (MCP) server that provides AI assistants with direct access to multiple database types. This server enables natural language interactions with PostgreSQL, MySQL, and SQLite databases through comprehensive introspection and analysis tools.
 
 ## 🚀 Quick Install
