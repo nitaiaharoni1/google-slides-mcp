@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dabi - Pitch Deck</title>
-    
+
     <!-- Open Graph Meta Tags for Social Sharing -->
     <meta property="og:title" content="dabi - DB made easy with AI">
     <meta property="og:description" content="Turn every employee into a data analyst in 30 seconds. Universal AI interface for enterprise databases through natural language queries.">
@@ -13,17 +13,17 @@
     <meta property="og:url" content="https://nitaiaharoni1.github.io/database-mcp/docs/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="dabi">
-    
+
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="dabi - DB made easy with AI">
     <meta name="twitter:description" content="Turn every employee into a data analyst in 30 seconds. Universal AI interface for enterprise databases.">
     <meta name="twitter:image" content="https://nitaiaharoni1.github.io/database-mcp/docs/dabi-icon.png">
-    
+
     <!-- Additional Meta Tags -->
     <meta name="description" content="dabi - The universal AI interface for enterprise databases. Natural language database queries through Claude, ChatGPT, and any MCP-compatible AI tool.">
     <meta name="keywords" content="database, AI, natural language, SQL, MCP, Claude, ChatGPT, business intelligence">
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -53,15 +53,18 @@
             width: 90%;
             max-width: 1200px;
             height: 80vh;
+            max-height: calc(100vh - 120px);
             background: linear-gradient(135deg, #4a5568, #2d3748, #1a202c);
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            padding: 60px;
+            padding: 60px 60px 100px 60px;
             text-align: center;
             opacity: 0;
             transform: scale(0.9);
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid #4a5568;
+            overflow-y: auto;
+            box-sizing: border-box;
         }
 
         .slide.active {
@@ -291,18 +294,19 @@
 
         .navigation {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             gap: 15px;
-            z-index: 1000;
+            z-index: 9999;
+            pointer-events: auto;
         }
 
         .nav-btn {
             background: linear-gradient(135deg, #1a202c, #2d3748);
             border: 1px solid #4a5568;
-            padding: 12px 24px;
+            padding: 0;
             border-radius: 25px;
             cursor: pointer;
             font-size: 1rem;
@@ -313,6 +317,11 @@
             backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
+            width: 120px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .nav-btn:before {
@@ -374,8 +383,8 @@
         }
 
         .persistent-logo .logo-icon {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             margin-top: 6px;
         }
 
@@ -392,8 +401,8 @@
             font-weight: 700;
             text-shadow: 0 2px 8px rgba(102, 126, 234, 0.6);
             white-space: nowrap;
-            line-height: 32px;
-            height: 32px;
+            line-height: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
         }
@@ -507,6 +516,524 @@
             font-size: 0.8rem;
             margin-top: 5px;
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                overflow-x: hidden;
+            }
+
+            .slideshow-container {
+                padding: 0;
+            }
+
+            .slide {
+                width: 100%;
+                height: 100vh;
+                padding: 60px 25px 80px 25px;
+                margin: 0;
+                border-radius: 0;
+                box-sizing: border-box;
+            }
+
+            .title-logo {
+                gap: 6px;
+                margin-bottom: 15px;
+            }
+
+            .title-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+                line-height: 1.1;
+                margin: 0;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+                line-height: 1.2;
+            }
+
+            h3 {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+
+            p, .subtitle {
+                font-size: 0.8rem;
+                line-height: 1.3;
+                margin-bottom: 10px;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .competitor-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .metric-card {
+                padding: 15px;
+                border-radius: 10px;
+            }
+
+            .metric-number {
+                font-size: 1.5rem;
+            }
+
+            .metric-label {
+                font-size: 0.7rem;
+                line-height: 1.2;
+            }
+
+            .competitor-card {
+                padding: 15px;
+            }
+
+            .competitor-name {
+                font-size: 1.1rem;
+            }
+
+            .competitor-funding {
+                font-size: 0.95rem;
+            }
+
+            .competitor-valuation {
+                font-size: 0.85rem;
+            }
+
+            .competitor-description {
+                font-size: 0.8rem;
+            }
+
+            .feature-list li {
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+                padding-left: 16px;
+                line-height: 1.3;
+            }
+
+            .value-prop {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .value-prop h3 {
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+            }
+
+            .value-prop p {
+                font-size: 0.85rem;
+            }
+
+            .tech-stack {
+                gap: 8px;
+                margin: 15px 0;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .tech-badge {
+                padding: 6px 12px;
+                font-size: 0.7rem;
+                border-radius: 20px;
+            }
+
+            .market-size {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                margin: 20px 0;
+            }
+
+            .market-circle {
+                width: 80px;
+                height: 80px;
+                flex-shrink: 0;
+            }
+
+            .market-value {
+                font-size: 1.1rem;
+            }
+
+            .market-label {
+                font-size: 0.7rem;
+            }
+
+            /* Mobile Navigation */
+            .navigation {
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                gap: 8px;
+                padding: 0 10px;
+            }
+
+            .nav-btn {
+                font-size: 0.8rem;
+                border-radius: 20px;
+                width: 100px;
+                height: 44px;
+            }
+
+            /* Mobile Logo */
+            .persistent-logo {
+                top: 15px;
+                left: 15px;
+                gap: 2px;
+            }
+
+            .persistent-logo .logo-icon {
+                width: 22px;
+                height: 22px;
+                margin-top: 3px;
+            }
+
+            .persistent-logo .logo-text {
+                font-size: 0.9rem;
+                line-height: 22px;
+                height: 22px;
+            }
+
+            /* Mobile Slide Counter */
+            .slide-counter {
+                top: 15px;
+                right: 15px;
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+
+            /* Demo Section Mobile */
+            .slide div[style*="background: #1a202c"] {
+                padding: 15px !important;
+                margin: 15px 0 !important;
+                font-size: 0.7rem !important;
+                border-radius: 10px !important;
+            }
+
+            .slide div[style*="background: #2d3748"] {
+                padding: 12px !important;
+                margin-top: 15px !important;
+                font-size: 0.75rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slide {
+                width: 100%;
+                height: 100vh;
+                padding: 50px 20px 70px 20px;
+                border-radius: 0;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+                margin: 0;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+                line-height: 1.1;
+            }
+
+            h3 {
+                font-size: 1rem;
+                margin-bottom: 8px;
+            }
+
+            p, .subtitle {
+                font-size: 0.8rem;
+                line-height: 1.3;
+                margin-bottom: 10px;
+            }
+
+            .title-logo {
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .title-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .metrics-grid {
+                gap: 12px;
+                margin: 15px 0;
+            }
+
+            .metric-card {
+                padding: 12px;
+                border-radius: 8px;
+            }
+
+            .metric-number {
+                font-size: 1.5rem;
+            }
+
+            .metric-label {
+                font-size: 0.7rem;
+                line-height: 1.2;
+            }
+
+            .competitor-card {
+                padding: 12px;
+            }
+
+            .competitor-name {
+                font-size: 1rem;
+            }
+
+            .competitor-funding {
+                font-size: 0.85rem;
+            }
+
+            .competitor-valuation {
+                font-size: 0.75rem;
+            }
+
+            .competitor-description {
+                font-size: 0.7rem;
+            }
+
+            .feature-list li {
+                font-size: 0.75rem;
+                margin-bottom: 8px;
+                padding-left: 14px;
+                line-height: 1.2;
+            }
+
+            .value-prop {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .value-prop h3 {
+                font-size: 0.95rem;
+                margin-bottom: 8px;
+            }
+
+            .value-prop p {
+                font-size: 0.75rem;
+            }
+
+            .tech-stack {
+                gap: 6px;
+                margin: 12px 0;
+            }
+
+            .tech-badge {
+                padding: 4px 8px;
+                font-size: 0.65rem;
+                border-radius: 15px;
+            }
+
+            .market-size {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 8px;
+                margin: 15px 0;
+            }
+
+            .market-circle {
+                width: 70px;
+                height: 70px;
+                flex-shrink: 0;
+            }
+
+            .market-value {
+                font-size: 0.9rem;
+            }
+
+            .market-label {
+                font-size: 0.55rem;
+            }
+
+            .nav-btn {
+                font-size: 0.7rem;
+                width: 90px;
+                height: 40px;
+            }
+
+            .persistent-logo .logo-icon {
+                width: 18px;
+                height: 18px;
+                margin-top: 2px;
+            }
+
+            .persistent-logo .logo-text {
+                font-size: 0.8rem;
+                line-height: 18px;
+                height: 18px;
+            }
+
+            .slide-counter {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+            }
+
+            /* Very small screens demo adjustments */
+            .slide div[style*="background: #1a202c"] {
+                padding: 10px !important;
+                margin: 10px 0 !important;
+                font-size: 0.6rem !important;
+                line-height: 1.2 !important;
+            }
+
+            .slide div[style*="background: #2d3748"] {
+                padding: 8px !important;
+                margin-top: 10px !important;
+                font-size: 0.65rem !important;
+                line-height: 1.2 !important;
+            }
+        }
+
+        /* Ultra-small screens (Galaxy Fold, etc.) */
+        @media (max-width: 360px) {
+            .slide {
+                padding: 40px 15px 60px 15px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            h2 {
+                font-size: 1.1rem;
+            }
+
+            .title-icon {
+                width: 35px;
+                height: 35px;
+            }
+
+            .metric-card, .competitor-card {
+                padding: 10px;
+            }
+
+            .value-prop {
+                padding: 10px;
+            }
+
+            .market-size {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 6px;
+                margin: 12px 0;
+            }
+
+            .market-circle {
+                width: 60px;
+                height: 60px;
+                flex-shrink: 0;
+            }
+
+            .market-value {
+                font-size: 0.8rem;
+            }
+
+            .market-label {
+                font-size: 0.5rem;
+            }
+
+            .nav-btn {
+                font-size: 0.65rem;
+                width: 80px;
+                height: 36px;
+            }
+
+            .persistent-logo .logo-icon {
+                width: 16px;
+                height: 16px;
+            }
+
+            .persistent-logo .logo-text {
+                font-size: 0.75rem;
+                line-height: 16px;
+                height: 16px;
+            }
+        }
+
+        /* Landscape Mobile Optimization */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .slide {
+                height: 100vh;
+                padding: 30px 15px 60px 15px;
+            }
+
+            .navigation {
+                bottom: 10px;
+            }
+
+            .persistent-logo {
+                top: 10px;
+                left: 10px;
+            }
+
+            .slide-counter {
+                top: 10px;
+                right: 10px;
+            }
+
+            .title-logo {
+                margin-bottom: 10px;
+            }
+
+            .metrics-grid, .competitor-grid {
+                margin: 15px 0;
+            }
+
+            .value-prop {
+                margin: 10px 0;
+            }
+        }
+
+        /* Large mobile screens (phablets) optimization */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .slide {
+                padding: 70px 20px 90px 20px;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+
+            .title-icon {
+                width: 55px;
+                height: 55px;
+            }
+
+            .metric-card {
+                padding: 18px;
+            }
+
+            .metric-number {
+                font-size: 2rem;
+            }
+
+            .feature-list li {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -517,7 +1044,7 @@
             </div>
             <div class="logo-text">dabi</div>
         </div>
-        
+
         <div class="slide-counter">
             <span id="current-slide">1</span> / <span id="total-slides">13</span>
         </div>
@@ -874,7 +1401,7 @@
         const totalSlides = slides.length;
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-        
+
         document.getElementById('total-slides').textContent = totalSlides;
 
         function updateNavigation() {
@@ -903,28 +1430,28 @@
 
         function showSlide(n, direction = 'next') {
             if (n < 0 || n >= totalSlides) return;
-            
+
             const exitClass = direction === 'next' ? 'slide-exit-next' : 'slide-exit-prev';
             const enterClass = direction === 'next' ? 'slide-enter-next' : 'slide-enter-prev';
-            
+
             // Add exit animation to current slide
             slides[currentSlide].classList.add(exitClass);
-            
+
             setTimeout(() => {
                 slides[currentSlide].classList.remove('active', exitClass);
                 currentSlide = n;
-                
+
                 // Add enter animation to new slide
                 slides[currentSlide].classList.add('active', enterClass);
-                
+
                 // Remove enter animation class after animation completes
                 setTimeout(() => {
                     slides[currentSlide].classList.remove(enterClass);
                 }, 600);
-                
+
                 document.getElementById('current-slide').textContent = currentSlide + 1;
                 updateNavigation();
-                
+
                 // Add staggered animations to slide content
                 animateSlideContent(direction);
             }, 200);
@@ -940,32 +1467,32 @@
 
         function animateSlideContent(direction = 'next') {
             const currentSlideElement = slides[currentSlide];
-            
+
             // Clean up any previous animations first
             const allAnimatableElements = currentSlideElement.querySelectorAll('h2, h3, p, .feature-list li, .metric-card, .competitor-card, .tech-badge, .market-circle');
             allAnimatableElements.forEach(cleanupAnimations);
-            
+
             // Text elements - fade in only
             const textElements = currentSlideElement.querySelectorAll('h2, h3, p, .feature-list li');
             const cardElements = currentSlideElement.querySelectorAll('.metric-card, .competitor-card, .tech-badge, .market-circle');
-            
+
             const cardAnimationClass = direction === 'next' ? 'animate__fadeInRight' : 'animate__fadeInLeft';
-            
+
             // Animate text elements with fade in
             textElements.forEach((element, index) => {
                 element.style.animationDelay = `${0.05 * index}s`;
                 element.classList.add('animate__animated', 'animate__fadeIn');
-                
+
                 setTimeout(() => {
                     cleanupAnimations(element);
                 }, 650 + (50 * index));
             });
-            
+
             // Animate cards with slide from sides
             cardElements.forEach((element, index) => {
                 element.style.animationDelay = `${0.1 + (0.08 * index)}s`;
                 element.classList.add('animate__animated', cardAnimationClass);
-                
+
                 setTimeout(() => {
                     cleanupAnimations(element);
                 }, 950 + (80 * index));
@@ -980,7 +1507,7 @@
 
         // Initialize navigation state
         updateNavigation();
-        
+
         // Add initial content animation
         setTimeout(() => {
             animateSlideContent('next');
@@ -1010,7 +1537,7 @@
         function handleSwipe() {
             const swipeThreshold = 50;
             const diff = touchStartX - touchEndX;
-            
+
             if (Math.abs(diff) > swipeThreshold) {
                 if (diff > 0 && currentSlide < totalSlides - 1) {
                     // Swipe left - next slide
@@ -1027,7 +1554,7 @@
             btn.addEventListener('mouseenter', function() {
                 this.classList.add('animate__animated', 'animate__pulse');
             });
-            
+
             btn.addEventListener('mouseleave', function() {
                 this.classList.remove('animate__animated', 'animate__pulse');
             });
