@@ -1,6 +1,6 @@
 {
   "name": "database-mcp",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Model Context Protocol server for multi-database access (PostgreSQL, MySQL, SQLite) with comprehensive introspection and analysis tools",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
