@@ -10,33 +10,12 @@ A Model Context Protocol (MCP) server that provides AI assistants with direct ac
 ## 🚀 Quick Install
 
 ```bash
-# Install globally (recommended)
 npm install -g database-mcp
-
-# Set your database connection
-export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
-# or
-export DATABASE_URL="mysql://username:password@host:port/database"
-# or
-export DATABASE_URL="./path/to/database.sqlite"
-
-# Quick setup with init command
-database-mcp init
-
-# Or setup with database URL directly (no environment variable needed)
-database-mcp init "postgresql://username:password@host:port/database?sslmode=require"
-
-# Check your current configuration
+database-mcp init "postgresql://user:pass@host:port/db"
 database-mcp status
-
-# Update your database connection
-database-mcp update "postgresql://user:pass@newhost:port/db"
-
-# Or use without installing
-npx database-mcp init "postgresql://username:password@host:port/database"
 ```
 
-That's it! The server will automatically detect your OS and configure Claude Desktop for you.
+Restart Claude Desktop after setup.
 
 **New in v1.2.4:** Use the simple `database-mcp init` command for streamlined setup!
 
@@ -93,114 +72,28 @@ That's it! The server will automatically detect your OS and configure Claude Des
 ## 🛠️ Installation
 
 ### Prerequisites
+- Node.js (v16 or higher)
+- Claude Desktop or any MCP-compatible AI client
+- Database access (PostgreSQL, MySQL, or SQLite)
 
-- [Node.js](https://nodejs.org/) (v16 or higher)
-- [Claude Desktop](https://claude.ai/desktop) or any MCP-compatible AI client
-- Access to a PostgreSQL, MySQL, or SQLite database
+### Quick Setup
 
-### Quick Start
-
-Choose one of the installation methods below:
-
-#### Method 1: Automatic Configuration (Recommended)
-
-1. **Install globally via npm:**
+1. **Install and configure automatically:**
    ```bash
-   npm install -g database-mcp
+   npx database-mcp init "your-database-connection-string"
    ```
 
-2. **Set your database connection (optional):**
-   ```bash
-   # PostgreSQL (cloud or local)
-   export DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
-   
-   # MySQL
-   export DATABASE_URL="mysql://username:password@host:port/database"
-   
-   # SQLite
-   export DATABASE_URL="./path/to/database.sqlite"
-   ```
+2. **Restart Claude Desktop** and you're ready!
 
-3. **Quick setup with init command:**
-   ```bash
-   # Use environment variable DATABASE_URL
-   database-mcp init
-   
-   # Or provide database URL directly (no environment variable needed)
-   database-mcp init "postgresql://username:password@host:port/database"
-   
-   # Check your current configuration
-   database-mcp status
-   
-   # Update database connection if needed
-   database-mcp update "postgresql://user:pass@newhost:port/db"
-   ```
-   
-   This command will:
-   - Detect your operating system (macOS, Linux, Windows)
-   - Find your Claude Desktop configuration file
-   - Add the Database MCP server configuration
-   - Use your provided database URL or existing `DATABASE_URL` environment variable
-   
-4. **Restart Claude Desktop** and start chatting!
+### Alternative Methods
 
-#### Method 2: Using npx (No Installation)
-
+**Install globally:**
 ```bash
-# Configure Claude Desktop without installing (recommended)
-npx database-mcp init "postgresql://username:password@host:port/database"
-
-# Or use environment variable
-export DATABASE_URL="mysql://username:password@localhost:3306/database"
-npx database-mcp init
-
-# Check status
-npx database-mcp status
-
-# Update database connection
-npx database-mcp update "mysql://user:pass@newhost:3306/db"
+npm install -g database-mcp
+database-mcp init "your-database-connection-string"
 ```
 
-#### Method 3: Manual Configuration
-
-If you prefer to configure manually or the automatic configuration doesn't work:
-
-1. **Install the package:**
-   ```bash
-   npm install -g database-mcp
-   ```
-
-2. **Find your Claude Desktop config file location:**
-   ```bash
-   database-mcp --find-config
-   ```
-   
-   This will show you:
-   - Your OS-specific config file path
-   - Whether the file already exists
-   - Whether Database MCP is already configured
-   - Complete manual configuration instructions
-   
-   **Tip:** Instead of manual configuration, try `database-mcp init` for automatic setup!
-
-3. **Manually edit Claude Desktop configuration:**
-   
-   Open the configuration file shown by the previous command in your text editor and add:
-
-   ```json
-   {
-     "mcpServers": {
-       "database": {
-         "command": "database-mcp",
-         "env": {
-           "DATABASE_URL": "your-database-connection-string"
-         }
-       }
-     }
-   }
-   ```
-
-4. **Restart Claude Desktop**
+**Manual configuration:** Use `database-mcp --find-config` to locate your Claude Desktop config file and add the server manually.
 
 ## 🔗 Connection String Examples
 
