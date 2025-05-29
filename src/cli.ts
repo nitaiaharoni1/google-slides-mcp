@@ -86,6 +86,7 @@ Examples:
   database-mcp init "postgresql://user:pass@host:port/db"
   database-mcp init "mysql://user:pass@localhost:3306/mydb"
   database-mcp init "./database.sqlite"
+  database-mcp init "snowflake://user:pass@account.snowflakecomputing.com/db"
   database-mcp status
   database-mcp update "postgresql://user:pass@newhost:port/db"
 
@@ -96,6 +97,7 @@ Supported Databases:
   - PostgreSQL: postgresql://user:pass@host:port/database
   - MySQL: mysql://user:pass@host:port/database  
   - SQLite: /path/to/database.db
+  - Snowflake: snowflake://user:pass@account.snowflakecomputing.com/database
 
 Quick Start:
   1. Install: npm install -g database-mcp

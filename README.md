@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/database-mcp)](https://www.npmjs.com/package/database-mcp)
 [![npm downloads](https://img.shields.io/npm/dm/database-mcp)](https://www.npmjs.com/package/database-mcp)
 
-A Model Context Protocol (MCP) server that provides AI assistants with direct access to multiple database types. This server enables natural language interactions with PostgreSQL, MySQL, and SQLite databases through comprehensive introspection and analysis tools.
+A Model Context Protocol (MCP) server that provides AI assistants with direct access to multiple database types. This server enables natural language interactions with PostgreSQL, MySQL, SQLite, and Snowflake databases through comprehensive introspection and analysis tools.
 
 ## 🚀 Quick Install
 
@@ -32,6 +32,7 @@ Restart Claude Desktop after setup.
 - **PostgreSQL** - Full support for cloud providers (AWS RDS, Google Cloud SQL, DigitalOcean, Azure)
 - **MySQL** - Complete MySQL 5.7+ and 8.0+ compatibility  
 - **SQLite** - Local and embedded database support
+- **Snowflake** - Cloud data warehouse with advanced analytics capabilities
 
 ### 🔐 **Secure Connections**
 - **Smart SSL/TLS** - Automatic SSL detection for cloud databases
@@ -115,6 +116,18 @@ mysql://user:pass@host.amazonaws.com:3306/database
 
 # Local MySQL
 mysql://user:pass@localhost:3306/database
+```
+
+### Snowflake
+```bash
+# Snowflake cloud data warehouse
+snowflake://username:password@account.snowflakecomputing.com/database/schema?warehouse=COMPUTE_WH&role=ACCOUNTADMIN
+
+# With specific region
+snowflake://user:pass@account.us-east-1.snowflakecomputing.com/MYDB/PUBLIC?warehouse=ANALYTICS_WH&role=ANALYST
+
+# Minimal configuration (uses defaults)
+snowflake://user:pass@account/database
 ```
 
 ### SQLite

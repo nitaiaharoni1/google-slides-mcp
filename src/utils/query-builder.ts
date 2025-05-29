@@ -23,6 +23,10 @@ export class QueryBuilder {
                 // SQLite doesn't support ANALYZE in EXPLAIN
                 return `EXPLAIN QUERY PLAN ${query}`;
             
+            case 'snowflake':
+                // Snowflake uses EXPLAIN for query plans
+                return `EXPLAIN ${query}`;
+            
             default:
                 throw new Error(`Unsupported database type for EXPLAIN: ${databaseType}`);
         }
@@ -72,6 +76,18 @@ export class QueryBuilder {
                     FROM ${escapedTable}
                 `;
             
+            case 'snowflake':
+                return `
+                    SELECT 
+                        COUNT(*) as total_rows,
+                        COUNT(${escapedColumn}) as non_null_count,
+                        COUNT(*) - COUNT(${escapedColumn}) as null_count,
+                        COUNT(DISTINCT ${escapedColumn}) as distinct_count,
+                        MIN(TO_VARCHAR(${escapedColumn})) as min_value,
+                        MAX(TO_VARCHAR(${escapedColumn})) as max_value
+                    FROM ${escapedTable}
+                `;
+            
             default:
                 throw new Error(`Unsupported database type for column stats: ${databaseType}`);
         }
@@ -87,6 +103,7 @@ export class QueryBuilder {
         switch (databaseType) {
             case 'postgresql':
             case 'mysql':
+            case 'snowflake':
                 return `
                     SELECT ${escapedColumn} as value, COUNT(*) as frequency
                     FROM ${escapedTable}
@@ -125,6 +142,9 @@ export class QueryBuilder {
             case 'sqlite':
                 return `"${identifier.replace(/"/g, '""')}"`;
             
+            case 'snowflake':
+                return `"${identifier.replace(/"/g, '""')}"`;
+            
             default:
                 throw new Error(`Unsupported database type for identifier escaping: ${databaseType}`);
         }
@@ -143,6 +163,9 @@ export class QueryBuilder {
             
             case 'sqlite':
                 return `name = ?`;
+            
+            case 'snowflake':
+                return `table_name = ?`;
             
             default:
                 throw new Error(`Unsupported database type for table filter: ${databaseType}`);
@@ -169,6 +192,9 @@ export class ExplainResultParser {
                 );
             
             case 'sqlite':
+                return rows;
+            
+            case 'snowflake':
                 return rows;
             
             default:

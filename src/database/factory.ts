@@ -7,6 +7,7 @@ import DatabaseInterface from './base';
 import PostgreSQLDatabase from './postgresql';
 import MySQLDatabase from './mysql';
 import SQLiteDatabase from './sqlite';
+import SnowflakeDatabase from './snowflake';
 import { DatabaseType, ValidationResult } from '../types/database';
 import { SQLITE_EXTENSIONS, SUPPORTED_DATABASE_TYPES } from '../config/constants';
 
@@ -26,6 +27,8 @@ class DatabaseFactory {
                 return new MySQLDatabase(connectionString);
             case 'sqlite':
                 return new SQLiteDatabase(connectionString);
+            case 'snowflake':
+                return new SnowflakeDatabase(connectionString);
             default:
                 throw new Error(`Unsupported database type: ${dbType}`);
         }
@@ -34,7 +37,7 @@ class DatabaseFactory {
     /**
      * Detect database type from connection string
      * @param {string} connectionString - Database connection string
-     * @returns {string} - Database type (postgresql, mysql, sqlite)
+     * @returns {string} - Database type (postgresql, mysql, sqlite, snowflake)
      */
     static detectDatabaseType(connectionString: string): DatabaseType {
         const lowerStr = connectionString.toLowerCase();
@@ -50,6 +53,12 @@ class DatabaseFactory {
         if (lowerStr.startsWith('mysql://') || 
             lowerStr.includes('mysql')) {
             return 'mysql';
+        }
+
+        // Snowflake detection
+        if (lowerStr.startsWith('snowflake://') ||
+            lowerStr.includes('.snowflakecomputing.com')) {
+            return 'snowflake';
         }
 
         // SQLite detection - file paths or sqlite:// protocol
@@ -85,7 +94,7 @@ class DatabaseFactory {
      * @returns {Array<string>} - Array of supported database types
      */
     static getSupportedTypes() {
-        return ['postgresql', 'mysql', 'sqlite'];
+        return ['postgresql', 'mysql', 'sqlite', 'snowflake'];
     }
 
     /**
@@ -97,7 +106,8 @@ class DatabaseFactory {
         const displayNames: Record<DatabaseType, string> = {
             'postgresql': 'PostgreSQL',
             'mysql': 'MySQL',
-            'sqlite': 'SQLite'
+            'sqlite': 'SQLite',
+            'snowflake': 'Snowflake'
         };
         return displayNames[type] || type;
     }
@@ -123,6 +133,11 @@ class DatabaseFactory {
                 '/path/to/database.sqlite',
                 '../data/app.sqlite3',
                 'sqlite:///path/to/database.db'
+            ],
+            snowflake: [
+                'snowflake://username:password@account.snowflakecomputing.com/database/schema?warehouse=wh&role=role',
+                'snowflake://user:pass@myaccount/mydb/public?warehouse=COMPUTE_WH',
+                'snowflake://user:pass@myaccount.us-east-1/prod/analytics?warehouse=ANALYTICS_WH&role=ANALYST'
             ]
         };
     }
@@ -156,6 +171,9 @@ class DatabaseFactory {
                     break;
                 case 'sqlite':
                     this._validateSQLiteString(connectionString, errors);
+                    break;
+                case 'snowflake':
+                    this._validateSnowflakeString(connectionString, errors);
                     break;
             }
 
@@ -228,6 +246,52 @@ class DatabaseFactory {
         
         if (!hasValidExtension && !cleanPath.includes('/')) {
             errors.push(`SQLite file should have one of these extensions: ${SQLITE_EXTENSIONS.join(', ')}`);
+        }
+    }
+
+    private static _validateSnowflakeString(connectionString: string, errors: string[]): void {
+        try {
+            if (connectionString.startsWith('snowflake://')) {
+                const url = new URL(connectionString);
+                
+                if (!url.hostname || !url.hostname.includes('snowflakecomputing.com')) {
+                    errors.push('Snowflake connection string must include account.snowflakecomputing.com hostname');
+                }
+                
+                if (!url.username) {
+                    errors.push('Snowflake connection string must include username');
+                }
+                
+                if (!url.password) {
+                    errors.push('Snowflake connection string must include password');
+                }
+                
+                // Check for required path components (database)
+                const pathParts = url.pathname.slice(1).split('/').filter(p => p);
+                if (pathParts.length === 0) {
+                    errors.push('Snowflake connection string should include database name in path');
+                }
+            } else if (connectionString.includes('.snowflakecomputing.com')) {
+                errors.push('Please use snowflake:// URL format for connection string');
+            } else {
+                // Try to parse as JSON
+                try {
+                    const config = JSON.parse(connectionString);
+                    if (!config.account) {
+                        errors.push('Snowflake configuration must include account');
+                    }
+                    if (!config.username) {
+                        errors.push('Snowflake configuration must include username');
+                    }
+                    if (!config.password) {
+                        errors.push('Snowflake configuration must include password');
+                    }
+                } catch {
+                    errors.push('Invalid Snowflake connection string format');
+                }
+            }
+        } catch {
+            errors.push('Invalid Snowflake connection string format');
         }
     }
 }

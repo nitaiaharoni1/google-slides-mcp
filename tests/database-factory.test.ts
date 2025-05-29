@@ -7,6 +7,7 @@ import DatabaseFactory from '../src/database/factory';
 import PostgreSQLDatabase from '../src/database/postgresql';
 import MySQLDatabase from '../src/database/mysql';
 import SQLiteDatabase from '../src/database/sqlite';
+import SnowflakeDatabase from '../src/database/snowflake';
 
 describe('DatabaseFactory', () => {
   describe('detectDatabaseType', () => {
@@ -47,6 +48,18 @@ describe('DatabaseFactory', () => {
       });
     });
 
+    test('should detect Snowflake connection strings', () => {
+      const snowflakeUrls = [
+        'snowflake://user:pass@account.snowflakecomputing.com/db/schema',
+        'snowflake://user:pass@account.us-east-1.snowflakecomputing.com/db',
+        'https://account.snowflakecomputing.com',
+      ];
+
+      snowflakeUrls.forEach(url => {
+        expect(DatabaseFactory.detectDatabaseType(url)).toBe('snowflake');
+      });
+    });
+
     test('should throw error for unknown connection strings', () => {
       const invalidUrls = [
         'unknown://user@host/db',
@@ -74,6 +87,11 @@ describe('DatabaseFactory', () => {
     test('should create SQLite database instance', () => {
       const db = DatabaseFactory.create('sqlite:///path/to/db.sqlite');
       expect(db).toBeInstanceOf(SQLiteDatabase);
+    });
+
+    test('should create Snowflake database instance', () => {
+      const db = DatabaseFactory.create('snowflake://user:pass@account.snowflakecomputing.com/db');
+      expect(db).toBeInstanceOf(SnowflakeDatabase);
     });
 
     test('should throw error for unsupported database type', () => {
@@ -109,6 +127,15 @@ describe('DatabaseFactory', () => {
       expect(result.errors).toHaveLength(0);
     });
 
+    test('should validate Snowflake connection strings', () => {
+      const validSnowflake = 'snowflake://user:pass@account.snowflakecomputing.com/db';
+      const result = DatabaseFactory.validateConnectionString(validSnowflake);
+      
+      expect(result.isValid).toBe(true);
+      expect(result.type).toBe('snowflake');
+      expect(result.errors).toHaveLength(0);
+    });
+
     test('should reject empty connection strings', () => {
       const result = DatabaseFactory.validateConnectionString('');
       
@@ -123,6 +150,14 @@ describe('DatabaseFactory', () => {
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
+
+    test('should reject malformed Snowflake connection strings', () => {
+      const invalidSnowflake = 'snowflake://account.snowflakecomputing.com'; // missing username and password
+      const result = DatabaseFactory.validateConnectionString(invalidSnowflake);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
   });
 
   describe('utility methods', () => {
@@ -132,13 +167,15 @@ describe('DatabaseFactory', () => {
       expect(types).toContain('postgresql');
       expect(types).toContain('mysql');
       expect(types).toContain('sqlite');
-      expect(types).toHaveLength(3);
+      expect(types).toContain('snowflake');
+      expect(types).toHaveLength(4);
     });
 
     test('getDisplayName should return proper display names', () => {
       expect(DatabaseFactory.getDisplayName('postgresql')).toBe('PostgreSQL');
       expect(DatabaseFactory.getDisplayName('mysql')).toBe('MySQL');
       expect(DatabaseFactory.getDisplayName('sqlite')).toBe('SQLite');
+      expect(DatabaseFactory.getDisplayName('snowflake')).toBe('Snowflake');
     });
 
     test('getConnectionStringExamples should return example connection strings', () => {
@@ -147,14 +184,17 @@ describe('DatabaseFactory', () => {
       expect(examples).toHaveProperty('postgresql');
       expect(examples).toHaveProperty('mysql');
       expect(examples).toHaveProperty('sqlite');
+      expect(examples).toHaveProperty('snowflake');
       
       expect(Array.isArray(examples.postgresql)).toBe(true);
       expect(Array.isArray(examples.mysql)).toBe(true);
       expect(Array.isArray(examples.sqlite)).toBe(true);
+      expect(Array.isArray(examples.snowflake)).toBe(true);
       
       expect(examples.postgresql.length).toBeGreaterThan(0);
       expect(examples.mysql.length).toBeGreaterThan(0);
       expect(examples.sqlite.length).toBeGreaterThan(0);
+      expect(examples.snowflake.length).toBeGreaterThan(0);
     });
   });
 }); 

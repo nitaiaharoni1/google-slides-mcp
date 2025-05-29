@@ -1,7 +1,7 @@
 {
   "name": "database-mcp",
   "version": "1.2.6",
-  "description": "Model Context Protocol server for multi-database access (PostgreSQL, MySQL, SQLite) with comprehensive introspection and analysis tools",
+  "description": "Model Context Protocol server for multi-database access (PostgreSQL, MySQL, SQLite, Snowflake) with comprehensive introspection and analysis tools",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
   "bin": {
@@ -41,6 +41,7 @@
     "postgres",
     "mysql",
     "sqlite",
+    "snowflake",
     "multi-database",
     "claude",
     "ai",
@@ -75,6 +76,7 @@
     "dotenv": "^16.5.0",
     "mysql2": "^3.14.1",
     "pg": "^8.16.0",
+    "snowflake-sdk": "^2.1.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   },

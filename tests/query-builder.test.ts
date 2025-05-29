@@ -38,6 +38,16 @@ describe('QueryBuilder', () => {
       expect(explainAnalyze).toBe('EXPLAIN QUERY PLAN SELECT * FROM users');
     });
 
+    test('should build Snowflake EXPLAIN queries', () => {
+      const query = 'SELECT * FROM users';
+      
+      const explain = QueryBuilder.buildExplainQuery('snowflake', query, false);
+      expect(explain).toBe('EXPLAIN SELECT * FROM users');
+      
+      const explainAnalyze = QueryBuilder.buildExplainQuery('snowflake', query, true);
+      expect(explainAnalyze).toBe('EXPLAIN SELECT * FROM users');
+    });
+
     test('should throw error for unsupported database type', () => {
       expect(() => {
         QueryBuilder.buildExplainQuery('unsupported' as any, 'SELECT 1', false);
@@ -73,6 +83,16 @@ describe('QueryBuilder', () => {
       expect(query).toContain('COUNT("email")');
       expect(query).toContain('COUNT(DISTINCT "email")');
       expect(query).toContain('"users"');
+    });
+
+    test('should build Snowflake column stats query', () => {
+      const query = QueryBuilder.buildColumnStatsQuery('snowflake', 'users', 'email');
+      
+      expect(query).toContain('COUNT(*)');
+      expect(query).toContain('COUNT("email")');
+      expect(query).toContain('COUNT(DISTINCT "email")');
+      expect(query).toContain('"users"');
+      expect(query).toContain('TO_VARCHAR');
     });
 
     test('should throw error for unsupported database type', () => {
@@ -116,6 +136,17 @@ describe('QueryBuilder', () => {
       expect(query).toContain('LIMIT 10'); // default limit
     });
 
+    test('should build Snowflake most common values query', () => {
+      const query = QueryBuilder.buildMostCommonValuesQuery('snowflake', 'users', 'status', 5);
+      
+      expect(query).toContain('SELECT "status"');
+      expect(query).toContain('COUNT(*) as frequency');
+      expect(query).toContain('FROM "users"');
+      expect(query).toContain('GROUP BY "status"');
+      expect(query).toContain('ORDER BY frequency DESC');
+      expect(query).toContain('LIMIT 5');
+    });
+
     test('should throw error for unsupported database type', () => {
       expect(() => {
         QueryBuilder.buildMostCommonValuesQuery('unsupported' as any, 'table', 'column');
@@ -139,6 +170,11 @@ describe('QueryBuilder', () => {
       expect(QueryBuilder.escapeIdentifier('sqlite', 'user"name')).toBe('"user""name"');
     });
 
+    test('should escape Snowflake identifiers', () => {
+      expect(QueryBuilder.escapeIdentifier('snowflake', 'table')).toBe('"table"');
+      expect(QueryBuilder.escapeIdentifier('snowflake', 'user"name')).toBe('"user""name"');
+    });
+
     test('should throw error for unsupported database type', () => {
       expect(() => {
         QueryBuilder.escapeIdentifier('unsupported' as any, 'identifier');
@@ -159,6 +195,11 @@ describe('QueryBuilder', () => {
 
     test('should build SQLite table filter', () => {
       expect(QueryBuilder.buildTableFilter('sqlite', 'users')).toBe('name = ?');
+    });
+
+    test('should build Snowflake table filter', () => {
+      expect(QueryBuilder.buildTableFilter('snowflake', 'users')).toBe('table_name = ?');
+      expect(QueryBuilder.buildTableFilter('snowflake', 'users', 2)).toBe('table_name = ?');
     });
 
     test('should throw error for unsupported database type', () => {
@@ -206,12 +247,24 @@ describe('ExplainResultParser', () => {
 
     test('should parse SQLite EXPLAIN results', () => {
       const rows = [
-        { id: 0, parent: 0, notused: 0, detail: 'SCAN TABLE users' }
+        { id: 1, parent: 0, notused: 0, detail: 'SCAN TABLE users' }
       ];
       
       const result = ExplainResultParser.parseExplainResult('sqlite', rows);
       
-      expect(result).toEqual(rows);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({ id: 1, parent: 0, notused: 0, detail: 'SCAN TABLE users' });
+    });
+
+    test('should parse Snowflake EXPLAIN results', () => {
+      const rows = [
+        { step: 1, operation: 'TableScan', object: 'USERS' }
+      ];
+      
+      const result = ExplainResultParser.parseExplainResult('snowflake', rows);
+      
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({ step: 1, operation: 'TableScan', object: 'USERS' });
     });
 
     test('should throw error for unsupported database type', () => {

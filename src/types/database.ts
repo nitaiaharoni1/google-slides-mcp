@@ -29,7 +29,7 @@ export interface DatabaseField {
 }
 
 // Database types enum
-export type DatabaseType = 'postgresql' | 'mysql' | 'sqlite';
+export type DatabaseType = 'postgresql' | 'mysql' | 'sqlite' | 'snowflake';
 
 // Database configuration interfaces
 export interface DatabaseConfig {
@@ -80,6 +80,7 @@ export interface ConnectionStringExamples {
   postgresql: string[];
   mysql: string[];
   sqlite: string[];
+  snowflake: string[];
 }
 
 // Column information interface
