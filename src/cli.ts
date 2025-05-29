@@ -3,10 +3,13 @@
  * Focuses only on argument parsing, delegates command execution
  */
 
-import { detectDatabaseType, validateConnectionString, getConnectionStringExamples } from './database';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { detectDatabaseType, validateConnectionString, getConnectionStringExamples } from './database';
+
+// Type declaration for build-time injected constants
+declare const __PACKAGE_VERSION__: string;
 
 /**
  * CLI Command Handler
@@ -107,8 +110,8 @@ Alternative:
 }
 
 function showVersion(): void {
-  const packageJson = require('../../package.json');
-  console.log(`database-mcp v${packageJson.version}`);
+  const version = (typeof __PACKAGE_VERSION__ !== 'undefined') ? __PACKAGE_VERSION__ : require('../../package.json').version;
+  console.log(`database-mcp v${version}`);
 }
 
 function showConfiguration(): void {
@@ -446,7 +449,3 @@ function getClaudeConfigPath(): string {
       return path.join(os.homedir(), '.config', 'claude', 'claude_desktop_config.json');
   }
 }
-
-module.exports = {
-    handleCliCommands
-};

@@ -469,10 +469,4 @@ export class ConnectionLogger {
     static logFailure(databaseType: DatabaseType, message: string): void {
         console.error(`❌ ${databaseType.toUpperCase()} connection failed: ${message}`);
     }
-}
-
-module.exports = {
-    SSLConfigManager,
-    ConnectionErrorHandler,
-    ConnectionLogger
-}; 
+} 

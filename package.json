@@ -8,7 +8,10 @@
     "database-mcp": "dist/server.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node build.js",
+    "build:dev": "tsc",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:compare": "node build.js --compare",
     "start": "node dist/server.js",
     "dev": "ts-node server.ts",
     "dev:watch": "nodemon --exec ts-node server.ts",
@@ -22,7 +25,7 @@
     "find-config": "npm run build && node dist/server.js --find-config",
     "clean": "rimraf dist coverage",
     "prepare": "husky",
-    "prepublishOnly": "npm run clean && npm run build && npm run test:unit",
+    "prepublishOnly": "npm run clean && npm run build && npm run build:types && npm run test:unit",
     "postinstall": "echo '\n🎉 Database MCP Server installed successfully!\n\n📖 Quick Start:\n   1. Set DATABASE_URL: export DATABASE_URL=\"your_connection_string\"\n   2. Run setup: database-mcp --setup\n   3. Restart Claude Desktop\n\n💡 For help: database-mcp --help\n📖 Documentation: https://github.com/nitaiaharoni1/database-mcp#readme\n'",
     "release": "npm run build && node dist/release.js",
     "release:patch": "npm run build && node dist/release.js patch --yes",
@@ -80,6 +83,7 @@
     "@types/node": "^22.15.21",
     "@types/pg": "^8.15.2",
     "@types/sqlite3": "^3.1.11",
+    "esbuild": "^0.24.2",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "nodemon": "^3.0.0",

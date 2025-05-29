@@ -15,8 +15,8 @@ export const QUERY_LIMITS = {
 
 // Server configuration
 export const SERVER_CONFIG: MCPServerConfig = {
-  name: 'claude-multi-database-mcp',
-  version: '1.1.0',
+  name: 'database-mcp',
+  version: '1.0.0',
 } as const;
 
 // Supported database types
@@ -53,4 +53,39 @@ export const MAX_SEARCH_RESULTS = 50;
 export const DEFAULT_SCHEMA = 'public';
 
 // File extensions for SQLite detection
-export const SQLITE_EXTENSIONS = ['.db', '.sqlite', '.sqlite3'] as const; 
+export const SQLITE_EXTENSIONS = ['.db', '.sqlite', '.sqlite3'] as const;
+
+// Tool categories for database operations
+export const TOOL_CATEGORIES = {
+  QUERY: 'Query Execution',
+  SCHEMA: 'Schema Introspection',
+  ANALYSIS: 'Data Analysis',
+  DISCOVERY: 'Discovery',
+  INFO: 'Database Information',
+} as const;
+
+// Database connection string patterns
+export const CONNECTION_PATTERNS = {
+  postgresql: /^postgresql:\/\/|^postgres:\/\//,
+  mysql: /^mysql:\/\/|^mysql2:\/\//,
+  sqlite: /^sqlite:\/\/|\.db$|\.sqlite$|\.sqlite3$/,
+} as const;
+
+// Default connection options
+export const DEFAULT_CONNECTION_OPTIONS = {
+  postgresql: {
+    ssl: false,
+    connectionTimeoutMillis: 30000,
+    idleTimeoutMillis: 10000,
+    max: 10,
+  },
+  mysql: {
+    ssl: false,
+    connectTimeout: 30000,
+    acquireTimeout: 30000,
+    timeout: 60000,
+  },
+  sqlite: {
+    timeout: 30000,
+  },
+} as const; 
