@@ -42,7 +42,7 @@ export interface DatabaseConfig {
 
 export interface SSLConfig {
   rejectUnauthorized: boolean;
-  checkServerIdentity?: () => undefined;
+  checkServerIdentity?: (servername: string, cert: any) => undefined;
   requestCert?: boolean;
   agent?: boolean;
 }

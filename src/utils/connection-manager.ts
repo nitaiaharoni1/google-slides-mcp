@@ -288,47 +288,36 @@ export class SSLConfigManager {
         // Check if we should use SSL at all
         const isCloudProvider = this.isCloudProvider(connectionString);
         const isTestEnv = process.env.NODE_ENV === 'test' || process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0';
+        const hasSSLMode = connectionString.includes('sslmode=require') || connectionString.includes('ssl=true');
         
-        // Debug logging
-        if (process.env.NODE_ENV === 'test') {
-            console.error(`🔍 SSL Config Debug:`);
-            console.error(`   - Connection: ${connectionString.replace(/:[^:@]*@/, ':***@')}`);
-            console.error(`   - Is Cloud Provider: ${isCloudProvider}`);
-            console.error(`   - Is Test Env: ${isTestEnv}`);
-            console.error(`   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`);
-        }
+        // Debug logging - always show for connection issues
+        console.error(`🔍 SSL Config Debug:`);
+        console.error(`   - Connection: ${connectionString.replace(/:[^:@]*@/, ':***@')}`);
+        console.error(`   - Is Cloud Provider: ${isCloudProvider}`);
+        console.error(`   - Has SSL Mode: ${hasSSLMode}`);
+        console.error(`   - Is Test Env: ${isTestEnv}`);
+        console.error(`   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`);
         
-        if (isCloudProvider || isTestEnv) {
-            // Simplified SSL configuration that works reliably with pg client
+        // For cloud providers or any SSL requirement, handle SSL configuration
+        if (isCloudProvider || hasSSLMode) {
+            // For cloud providers with self-signed certificates, set the environment variable
+            if (isCloudProvider && process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0') {
+                console.error(`   - Setting NODE_TLS_REJECT_UNAUTHORIZED=0 for cloud provider`);
+                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+            }
+            
+            // Use the simplest SSL configuration that works with pg
             const config: SSLConfig = {
-                rejectUnauthorized: false,
-                checkServerIdentity: () => undefined
+                rejectUnauthorized: false
             };
             
-            if (process.env.NODE_ENV === 'test') {
-                console.error(`   - SSL Config Generated:`, JSON.stringify(config, null, 2));
-            }
+            console.error(`   - SSL Config Generated: rejectUnauthorized=false`);
             
             return config;
         }
 
-        // If not a cloud provider and not in test, check for explicit SSL requirements
-        if (connectionString.includes('sslmode=require') || connectionString.includes('ssl=true')) {
-            const config = {
-                rejectUnauthorized: !isTestEnv
-            };
-            
-            if (process.env.NODE_ENV === 'test') {
-                console.error(`   - SSL Config (explicit):`, JSON.stringify(config, null, 2));
-            }
-            
-            return config;
-        }
-
-        // No SSL
-        if (process.env.NODE_ENV === 'test') {
-            console.error(`   - SSL Config: false (no SSL)`);
-        }
+        // No SSL for local databases without explicit SSL requirements
+        console.error(`   - SSL Config: false (no SSL)`);
         return false;
     }
 
@@ -342,8 +331,10 @@ export class SSLConfigManager {
             if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
                 console.error(`⚠️  ${databaseType.toUpperCase()} SSL verification disabled via NODE_TLS_REJECT_UNAUTHORIZED`);
             } else {
-                console.error(`🔒 ${databaseType.toUpperCase()} SSL enabled with cloud provider certificate handling`);
+                console.error(`🔒 ${databaseType.toUpperCase()} SSL enabled with relaxed certificate verification for cloud providers`);
             }
+        } else {
+            console.error(`🔓 ${databaseType.toUpperCase()} SSL disabled`);
         }
     }
 }
