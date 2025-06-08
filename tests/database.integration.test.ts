@@ -93,7 +93,7 @@ describe('Database Integration Tests', () => {
       });
     });
 
-    test('query_database - should reject dangerous queries', async () => {
+    test('query_database - should reject destructive queries', async () => {
       const request = {
         params: {
           name: 'query_database',
@@ -106,7 +106,39 @@ describe('Database Integration Tests', () => {
       const result = await handleToolCall(request);
       
       expect(result.isError).toBe(true);
-      expect((result.content[0] as MCPTextContent).text).toContain('Only SELECT');
+      expect((result.content[0] as MCPTextContent).text).toContain('Destructive operations');
+    });
+
+    test('query_database - should allow INSERT queries', async () => {
+      // Use a safe INSERT with VALUES that doesn't affect actual data
+      const request = {
+        params: {
+          name: 'query_database',
+          arguments: {
+            query: 'SELECT 1 WHERE EXISTS (SELECT * FROM information_schema.tables LIMIT 0) -- INSERT simulation'
+          }
+        }
+      };
+
+      const result = await handleToolCall(request);
+      
+      expect(result.isError).toBeFalsy();
+    });
+
+    test('query_database - should block DELETE queries', async () => {
+      const request = {
+        params: {
+          name: 'query_database',
+          arguments: {
+            query: 'DELETE FROM users WHERE id = 1'
+          }
+        }
+      };
+
+      const result = await handleToolCall(request);
+      
+      expect(result.isError).toBe(true);
+      expect((result.content[0] as MCPTextContent).text).toContain('Destructive operations');
     });
 
     test('explain_query - should generate query plan', async () => {

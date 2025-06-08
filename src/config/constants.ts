@@ -33,17 +33,21 @@ export const CLOUD_PROVIDERS = [
   'heroku.com',
 ] as const;
 
-// Dangerous SQL keywords to block
+// Dangerous SQL keywords to block (destructive operations only)
 export const DANGEROUS_KEYWORDS = [
   'drop',
   'delete',
+  'truncate',
+  'grant',
+  'revoke',
+] as const;
+
+// Allowed write operations (non-destructive)
+export const ALLOWED_WRITE_KEYWORDS = [
   'insert',
   'update',
   'alter',
   'create',
-  'truncate',
-  'grant',
-  'revoke',
 ] as const;
 
 // Maximum search results

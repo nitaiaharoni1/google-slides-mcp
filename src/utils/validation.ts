@@ -14,13 +14,13 @@ export const validateQuery = (query: string): void => {
 
   const trimmedQuery = query.trim().toLowerCase();
 
-  // Check for dangerous keywords
-  const hasRiskyKeywords = DANGEROUS_KEYWORDS.some((keyword: string) =>
+  // Check for destructive keywords (only block truly dangerous operations)
+  const hasDestructiveKeywords = DANGEROUS_KEYWORDS.some((keyword: string) =>
     trimmedQuery.includes(keyword.toLowerCase())
   );
 
-  if (hasRiskyKeywords) {
-    throw new Error('Query contains potentially dangerous keywords. Only read operations are allowed.');
+  if (hasDestructiveKeywords) {
+    throw new Error('Destructive operations (DROP, DELETE, TRUNCATE, GRANT, REVOKE) are not allowed for safety.');
   }
 };
 

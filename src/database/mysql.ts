@@ -220,21 +220,26 @@ class MySQLDatabase extends DatabaseInterface {
   private _validateMySQLQuery(query: string): string {
     const trimmedQuery = query.trim().toLowerCase();
 
-    if (!trimmedQuery.startsWith('select') &&
-        !trimmedQuery.startsWith('with') &&
-        !trimmedQuery.startsWith('show') &&
-        !trimmedQuery.startsWith('describe') &&
-        !trimmedQuery.startsWith('explain')) {
-      throw new Error('Only SELECT, WITH, SHOW, DESCRIBE, and EXPLAIN queries are allowed for MySQL');
+    // Allow read operations
+    const allowedReadStarts = ['select', 'with', 'show', 'describe', 'explain'];
+    // Allow write operations (non-destructive)
+    const allowedWriteStarts = ['insert', 'update', 'alter', 'create'];
+    
+    const isAllowedOperation = allowedReadStarts.some(keyword => trimmedQuery.startsWith(keyword)) ||
+                              allowedWriteStarts.some(keyword => trimmedQuery.startsWith(keyword));
+
+    if (!isAllowedOperation) {
+      throw new Error('Only SELECT, WITH, SHOW, DESCRIBE, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for MySQL');
     }
 
-    const dangerousKeywords = ['drop', 'delete', 'insert', 'update', 'alter', 'create', 'truncate'];
-    const hasRiskyKeywords = dangerousKeywords.some(keyword =>
+    // Block destructive operations
+    const destructiveKeywords = ['drop', 'delete', 'truncate'];
+    const hasDestructiveKeywords = destructiveKeywords.some(keyword =>
       trimmedQuery.includes(keyword.toLowerCase())
     );
 
-    if (hasRiskyKeywords) {
-      throw new Error('Query contains potentially dangerous keywords. Only read operations are allowed.');
+    if (hasDestructiveKeywords) {
+      throw new Error('Destructive operations (DROP, DELETE, TRUNCATE) are not allowed for safety.');
     }
 
     return query;

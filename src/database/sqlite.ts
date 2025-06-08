@@ -181,20 +181,26 @@ class SQLiteDatabase extends DatabaseInterface {
   private _validateSQLiteQuery(query: string): string {
     const trimmedQuery = query.trim().toLowerCase();
 
-    if (!trimmedQuery.startsWith('select') &&
-        !trimmedQuery.startsWith('with') &&
-        !trimmedQuery.startsWith('pragma') &&
-        !trimmedQuery.startsWith('explain')) {
-      throw new Error('Only SELECT, WITH, PRAGMA, and EXPLAIN queries are allowed for SQLite');
+    // Allow read operations
+    const allowedReadStarts = ['select', 'with', 'pragma', 'explain'];
+    // Allow write operations (non-destructive)
+    const allowedWriteStarts = ['insert', 'update', 'alter', 'create'];
+    
+    const isAllowedOperation = allowedReadStarts.some(keyword => trimmedQuery.startsWith(keyword)) ||
+                              allowedWriteStarts.some(keyword => trimmedQuery.startsWith(keyword));
+
+    if (!isAllowedOperation) {
+      throw new Error('Only SELECT, WITH, PRAGMA, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for SQLite');
     }
 
-    const dangerousKeywords = ['drop', 'delete', 'insert', 'update', 'alter', 'create'];
-    const hasRiskyKeywords = dangerousKeywords.some(keyword =>
+    // Block destructive operations
+    const destructiveKeywords = ['drop', 'delete'];
+    const hasDestructiveKeywords = destructiveKeywords.some(keyword =>
       trimmedQuery.includes(keyword.toLowerCase())
     );
 
-    if (hasRiskyKeywords) {
-      throw new Error('Query contains potentially dangerous keywords. Only read operations are allowed.');
+    if (hasDestructiveKeywords) {
+      throw new Error('Destructive operations (DROP, DELETE) are not allowed for safety.');
     }
 
     return query;

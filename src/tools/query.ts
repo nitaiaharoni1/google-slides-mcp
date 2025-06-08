@@ -62,13 +62,13 @@ const explainQuery = async (args: ExplainQueryArgs) => {
 export const queryTools: MCPToolDefinition[] = [
     {
         name: 'query_database',
-        description: 'Execute a SQL query on the database. Supports PostgreSQL, MySQL, and SQLite. Only SELECT queries are allowed for safety.',
+        description: 'Execute a SQL query on the database. Supports PostgreSQL, MySQL, and SQLite. Allows SELECT, INSERT, UPDATE, ALTER, and CREATE operations. Destructive operations (DROP, DELETE, TRUNCATE) are blocked for safety.',
         inputSchema: {
             type: 'object',
             properties: {
                 query: {
                     type: 'string',
-                    description: 'SQL query to execute (SELECT statements only)',
+                    description: 'SQL query to execute (SELECT, INSERT, UPDATE, ALTER, CREATE statements allowed)',
                 },
             },
             required: ['query'],
@@ -83,7 +83,7 @@ export const queryTools: MCPToolDefinition[] = [
             properties: {
                 query: {
                     type: 'string',
-                    description: 'SQL query to explain (SELECT statements only)',
+                    description: 'SQL query to explain (SELECT, INSERT, UPDATE, ALTER, CREATE statements allowed)',
                 },
                 analyze: {
                     type: 'boolean',

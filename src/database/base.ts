@@ -75,12 +75,26 @@ abstract class DatabaseInterface {
     // Default implementation - override for database-specific validation
     const trimmedQuery = query.trim().toLowerCase();
     
-    if (!trimmedQuery.startsWith('select') && 
-        !trimmedQuery.startsWith('with') && 
-        !trimmedQuery.startsWith('show') &&
-        !trimmedQuery.startsWith('describe') &&
-        !trimmedQuery.startsWith('explain')) {
-      throw new Error('Only SELECT, WITH, SHOW, DESCRIBE, and EXPLAIN queries are allowed for security reasons');
+    // Allow read operations
+    const allowedReadStarts = ['select', 'with', 'show', 'describe', 'explain'];
+    // Allow write operations (non-destructive)
+    const allowedWriteStarts = ['insert', 'update', 'alter', 'create'];
+    
+    const isAllowedOperation = allowedReadStarts.some(keyword => trimmedQuery.startsWith(keyword)) ||
+                              allowedWriteStarts.some(keyword => trimmedQuery.startsWith(keyword));
+    
+    if (!isAllowedOperation) {
+      throw new Error('Only SELECT, WITH, SHOW, DESCRIBE, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for security reasons');
+    }
+
+    // Block destructive operations
+    const destructiveKeywords = ['drop', 'delete', 'truncate'];
+    const hasDestructiveKeywords = destructiveKeywords.some(keyword =>
+      trimmedQuery.includes(keyword.toLowerCase())
+    );
+
+    if (hasDestructiveKeywords) {
+      throw new Error('Destructive operations (DROP, DELETE, TRUNCATE) are not allowed for safety.');
     }
 
     return query;
