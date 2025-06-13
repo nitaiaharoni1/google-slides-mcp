@@ -7,6 +7,7 @@ import { queryTools } from './query';
 import { schemaTools } from './schema';
 import { analysisTools } from './analysis';
 import { discoveryTools } from './discovery';
+import { postgresCatalogTools } from './postgres-catalog';
 import { MCPToolDefinition, MCPResult } from '../types/mcp';
 
 // Combine all tools
@@ -14,7 +15,8 @@ const allTools: MCPToolDefinition[] = [
     ...queryTools,
     ...schemaTools,
     ...analysisTools,
-    ...discoveryTools
+    ...discoveryTools,
+    ...postgresCatalogTools
 ];
 
 /**
