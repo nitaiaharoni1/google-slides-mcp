@@ -16,11 +16,13 @@ export const validateQuery = (query: string): void => {
 
   // Check for destructive keywords (only block truly dangerous operations)
   const hasDestructiveKeywords = DANGEROUS_KEYWORDS.some((keyword: string) =>
-    trimmedQuery.includes(keyword.toLowerCase())
+    trimmedQuery.includes(keyword.toLowerCase()),
   );
 
   if (hasDestructiveKeywords) {
-    throw new Error('Destructive operations (DROP, DELETE, TRUNCATE, GRANT, REVOKE) are not allowed for safety.');
+    throw new Error(
+      'Destructive operations (DROP, DELETE, TRUNCATE, GRANT, REVOKE) are not allowed for safety.',
+    );
   }
 };
 
@@ -40,4 +42,4 @@ export const validateIdentifier = (name: string): void => {
   if (name.length > 63) {
     throw new Error('Identifier too long (max 63 characters)');
   }
-}; 
+};

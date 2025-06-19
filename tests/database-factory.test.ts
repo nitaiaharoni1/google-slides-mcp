@@ -18,7 +18,7 @@ describe('DatabaseFactory', () => {
         'postgresql://user@localhost/db',
       ];
 
-      postgresUrls.forEach(url => {
+      postgresUrls.forEach((url) => {
         expect(DatabaseFactory.detectDatabaseType(url)).toBe('postgresql');
       });
     });
@@ -29,7 +29,7 @@ describe('DatabaseFactory', () => {
         'mysql://user@localhost/db',
       ];
 
-      mysqlUrls.forEach(url => {
+      mysqlUrls.forEach((url) => {
         expect(DatabaseFactory.detectDatabaseType(url)).toBe('mysql');
       });
     });
@@ -43,7 +43,7 @@ describe('DatabaseFactory', () => {
         '../relative/path/db.db',
       ];
 
-      sqliteUrls.forEach(url => {
+      sqliteUrls.forEach((url) => {
         expect(DatabaseFactory.detectDatabaseType(url)).toBe('sqlite');
       });
     });
@@ -55,19 +55,15 @@ describe('DatabaseFactory', () => {
         'https://account.snowflakecomputing.com',
       ];
 
-      snowflakeUrls.forEach(url => {
+      snowflakeUrls.forEach((url) => {
         expect(DatabaseFactory.detectDatabaseType(url)).toBe('snowflake');
       });
     });
 
     test('should throw error for unknown connection strings', () => {
-      const invalidUrls = [
-        'unknown://user@host/db',
-        'invalid-string',
-        '',
-      ];
+      const invalidUrls = ['unknown://user@host/db', 'invalid-string', ''];
 
-      invalidUrls.forEach(url => {
+      invalidUrls.forEach((url) => {
         expect(() => DatabaseFactory.detectDatabaseType(url)).toThrow();
       });
     });
@@ -75,7 +71,9 @@ describe('DatabaseFactory', () => {
 
   describe('create', () => {
     test('should create PostgreSQL database instance', () => {
-      const db = DatabaseFactory.create('postgresql://user:pass@localhost:5432/db');
+      const db = DatabaseFactory.create(
+        'postgresql://user:pass@localhost:5432/db',
+      );
       expect(db).toBeInstanceOf(PostgreSQLDatabase);
     });
 
@@ -90,12 +88,16 @@ describe('DatabaseFactory', () => {
     });
 
     test('should create Snowflake database instance', () => {
-      const db = DatabaseFactory.create('snowflake://user:pass@account.snowflakecomputing.com/db');
+      const db = DatabaseFactory.create(
+        'snowflake://user:pass@account.snowflakecomputing.com/db',
+      );
       expect(db).toBeInstanceOf(SnowflakeDatabase);
     });
 
     test('should throw error for unsupported database type', () => {
-      expect(() => DatabaseFactory.create('unsupported://connection')).toThrow();
+      expect(() =>
+        DatabaseFactory.create('unsupported://connection'),
+      ).toThrow();
     });
   });
 
@@ -103,7 +105,7 @@ describe('DatabaseFactory', () => {
     test('should validate PostgreSQL connection strings', () => {
       const validPostgres = 'postgresql://user:pass@localhost:5432/mydb';
       const result = DatabaseFactory.validateConnectionString(validPostgres);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.type).toBe('postgresql');
       expect(result.errors).toHaveLength(0);
@@ -112,7 +114,7 @@ describe('DatabaseFactory', () => {
     test('should validate MySQL connection strings', () => {
       const validMysql = 'mysql://user:pass@localhost:3306/mydb';
       const result = DatabaseFactory.validateConnectionString(validMysql);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.type).toBe('mysql');
       expect(result.errors).toHaveLength(0);
@@ -121,16 +123,17 @@ describe('DatabaseFactory', () => {
     test('should validate SQLite connection strings', () => {
       const validSqlite = './database.sqlite';
       const result = DatabaseFactory.validateConnectionString(validSqlite);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.type).toBe('sqlite');
       expect(result.errors).toHaveLength(0);
     });
 
     test('should validate Snowflake connection strings', () => {
-      const validSnowflake = 'snowflake://user:pass@account.snowflakecomputing.com/db';
+      const validSnowflake =
+        'snowflake://user:pass@account.snowflakecomputing.com/db';
       const result = DatabaseFactory.validateConnectionString(validSnowflake);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.type).toBe('snowflake');
       expect(result.errors).toHaveLength(0);
@@ -138,7 +141,7 @@ describe('DatabaseFactory', () => {
 
     test('should reject empty connection strings', () => {
       const result = DatabaseFactory.validateConnectionString('');
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Connection string is required');
     });
@@ -146,7 +149,7 @@ describe('DatabaseFactory', () => {
     test('should reject malformed PostgreSQL connection strings', () => {
       const invalidPostgres = 'postgresql://localhost'; // missing username and database
       const result = DatabaseFactory.validateConnectionString(invalidPostgres);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
@@ -154,7 +157,7 @@ describe('DatabaseFactory', () => {
     test('should reject malformed Snowflake connection strings', () => {
       const invalidSnowflake = 'snowflake://account.snowflakecomputing.com'; // missing username and password
       const result = DatabaseFactory.validateConnectionString(invalidSnowflake);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
@@ -163,7 +166,7 @@ describe('DatabaseFactory', () => {
   describe('utility methods', () => {
     test('getSupportedTypes should return all supported database types', () => {
       const types = DatabaseFactory.getSupportedTypes();
-      
+
       expect(types).toContain('postgresql');
       expect(types).toContain('mysql');
       expect(types).toContain('sqlite');
@@ -180,21 +183,21 @@ describe('DatabaseFactory', () => {
 
     test('getConnectionStringExamples should return example connection strings', () => {
       const examples = DatabaseFactory.getConnectionStringExamples();
-      
+
       expect(examples).toHaveProperty('postgresql');
       expect(examples).toHaveProperty('mysql');
       expect(examples).toHaveProperty('sqlite');
       expect(examples).toHaveProperty('snowflake');
-      
+
       expect(Array.isArray(examples.postgresql)).toBe(true);
       expect(Array.isArray(examples.mysql)).toBe(true);
       expect(Array.isArray(examples.sqlite)).toBe(true);
       expect(Array.isArray(examples.snowflake)).toBe(true);
-      
+
       expect(examples.postgresql.length).toBeGreaterThan(0);
       expect(examples.mysql.length).toBeGreaterThan(0);
       expect(examples.sqlite.length).toBeGreaterThan(0);
       expect(examples.snowflake.length).toBeGreaterThan(0);
     });
   });
-}); 
+});

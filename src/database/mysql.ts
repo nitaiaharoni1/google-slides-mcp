@@ -5,14 +5,18 @@
 import mysql from 'mysql2/promise';
 import DatabaseInterface from './base';
 import { QUERY_LIMITS } from '../config/constants';
-import { SSLConfigManager, ConnectionErrorHandler, ConnectionLogger } from '../utils/connection-manager';
+import {
+  SSLConfigManager,
+  ConnectionErrorHandler,
+  ConnectionLogger,
+} from '../utils/connection-manager';
 import {
   DatabaseType,
   DatabaseQueryResult,
   DatabaseConnectionInfo,
   SchemaQueries,
   InfoQueries,
-  DataTypeMap
+  DataTypeMap,
 } from '../types/database';
 
 class MySQLDatabase extends DatabaseInterface {
@@ -25,7 +29,7 @@ class MySQLDatabase extends DatabaseInterface {
 
   async connect(): Promise<void> {
     ConnectionLogger.logAttempt(this.type);
-    
+
     try {
       const config = this._buildConnectionConfig();
       this.client = await mysql.createConnection(config);
@@ -54,8 +58,8 @@ class MySQLDatabase extends DatabaseInterface {
       throw new Error('Database not connected');
     }
 
-    const [result] = await this.client.execute(query, params) as any[];
-    
+    const [result] = (await this.client.execute(query, params)) as any[];
+
     return this._standardizeResult(result);
   }
 
@@ -69,7 +73,7 @@ class MySQLDatabase extends DatabaseInterface {
 
   getInfoQueries(): InfoQueries {
     return {
-      version: "SELECT VERSION() as version",
+      version: 'SELECT VERSION() as version',
       size: `
         SELECT 
           ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS database_size_mb
@@ -90,7 +94,7 @@ class MySQLDatabase extends DatabaseInterface {
         WHERE ID != CONNECTION_ID()
         GROUP BY STATE
         ORDER BY connection_count DESC
-      `
+      `,
     };
   }
 
@@ -105,7 +109,7 @@ class MySQLDatabase extends DatabaseInterface {
         WHERE table_schema = DATABASE()
         ORDER BY table_name
       `,
-      
+
       listSchemas: `
         SELECT 
           schema_name,
@@ -118,7 +122,7 @@ class MySQLDatabase extends DatabaseInterface {
         FROM information_schema.schemata
         ORDER BY schema_type, schema_name
       `,
-      
+
       describeTable: `
         SELECT 
           column_name,
@@ -132,7 +136,7 @@ class MySQLDatabase extends DatabaseInterface {
         WHERE table_name = ? AND table_schema = DATABASE()
         ORDER BY ordinal_position
       `,
-      
+
       listIndexes: `
         SELECT 
           NULL as schemaname,
@@ -144,19 +148,19 @@ class MySQLDatabase extends DatabaseInterface {
         WHERE table_schema = DATABASE()
         GROUP BY table_name, index_name, non_unique
         ORDER BY table_name, index_name
-      `
+      `,
     };
   }
 
   override getDataTypeMap(): DataTypeMap {
     return {
-      'string': 'VARCHAR',
-      'number': 'DECIMAL',
-      'integer': 'INT',
-      'boolean': 'BOOLEAN',
-      'date': 'DATETIME',
-      'json': 'JSON',
-      'text': 'TEXT'
+      string: 'VARCHAR',
+      number: 'DECIMAL',
+      integer: 'INT',
+      boolean: 'BOOLEAN',
+      date: 'DATETIME',
+      json: 'JSON',
+      text: 'TEXT',
     };
   }
 
@@ -164,7 +168,7 @@ class MySQLDatabase extends DatabaseInterface {
   private _buildConnectionConfig(): mysql.ConnectionOptions {
     // Parse the connection string to extract components
     const parsedConfig = this._parseConnectionString(this.connectionString);
-    
+
     const config: mysql.ConnectionOptions = {
       ...parsedConfig,
       connectTimeout: QUERY_LIMITS.CONNECTION_TIMEOUT,
@@ -184,12 +188,14 @@ class MySQLDatabase extends DatabaseInterface {
       throw new Error('Database not connected');
     }
 
-    const [result] = await this.client.execute('SELECT NOW() as current_time, VERSION() as db_version') as any[];
+    const [result] = (await this.client.execute(
+      'SELECT NOW() as current_time, VERSION() as db_version',
+    )) as any[];
     const { current_time, db_version } = result[0];
-    
+
     return {
       serverTime: current_time,
-      version: db_version.split('-')[0]
+      version: db_version.split('-')[0],
     };
   }
 
@@ -198,11 +204,13 @@ class MySQLDatabase extends DatabaseInterface {
       rows: Array.isArray(result) ? result : [],
       rowCount: Array.isArray(result) ? result.length : 0,
       command: 'SELECT',
-      fields: []
+      fields: [],
     };
   }
 
-  private _parseConnectionString(connectionString: string): mysql.ConnectionOptions {
+  private _parseConnectionString(
+    connectionString: string,
+  ): mysql.ConnectionOptions {
     try {
       const url = new URL(connectionString);
       return {
@@ -210,10 +218,12 @@ class MySQLDatabase extends DatabaseInterface {
         port: parseInt(url.port) || 3306,
         user: url.username,
         password: url.password,
-        database: url.pathname.slice(1)
+        database: url.pathname.slice(1),
       };
     } catch (error) {
-      throw new Error(`Invalid MySQL connection string: ${(error as Error).message}`);
+      throw new Error(
+        `Invalid MySQL connection string: ${(error as Error).message}`,
+      );
     }
   }
 
@@ -224,26 +234,31 @@ class MySQLDatabase extends DatabaseInterface {
     const allowedReadStarts = ['select', 'with', 'show', 'describe', 'explain'];
     // Allow write operations (non-destructive)
     const allowedWriteStarts = ['insert', 'update', 'alter', 'create'];
-    
-    const isAllowedOperation = allowedReadStarts.some(keyword => trimmedQuery.startsWith(keyword)) ||
-                              allowedWriteStarts.some(keyword => trimmedQuery.startsWith(keyword));
+
+    const isAllowedOperation =
+      allowedReadStarts.some((keyword) => trimmedQuery.startsWith(keyword)) ||
+      allowedWriteStarts.some((keyword) => trimmedQuery.startsWith(keyword));
 
     if (!isAllowedOperation) {
-      throw new Error('Only SELECT, WITH, SHOW, DESCRIBE, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for MySQL');
+      throw new Error(
+        'Only SELECT, WITH, SHOW, DESCRIBE, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for MySQL',
+      );
     }
 
     // Block destructive operations
     const destructiveKeywords = ['drop', 'delete', 'truncate'];
-    const hasDestructiveKeywords = destructiveKeywords.some(keyword =>
-      trimmedQuery.includes(keyword.toLowerCase())
+    const hasDestructiveKeywords = destructiveKeywords.some((keyword) =>
+      trimmedQuery.includes(keyword.toLowerCase()),
     );
 
     if (hasDestructiveKeywords) {
-      throw new Error('Destructive operations (DROP, DELETE, TRUNCATE) are not allowed for safety.');
+      throw new Error(
+        'Destructive operations (DROP, DELETE, TRUNCATE) are not allowed for safety.',
+      );
     }
 
     return query;
   }
 }
 
-export default MySQLDatabase; 
+export default MySQLDatabase;

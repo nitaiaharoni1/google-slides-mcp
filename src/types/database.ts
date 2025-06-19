@@ -162,4 +162,4 @@ export interface ColumnAnalysis {
 export interface MostCommonValue {
   value: any;
   frequency: number;
-} 
+}

@@ -57,9 +57,11 @@ Supported Databases:
    */
   static executeFindConfig(): boolean {
     console.log('Claude Desktop config location:');
-    console.log('  macOS: ~/Library/Application Support/Claude/claude_desktop_config.json');
+    console.log(
+      '  macOS: ~/Library/Application Support/Claude/claude_desktop_config.json',
+    );
     console.log('  Windows: %APPDATA%\\Claude\\claude_desktop_config.json');
     console.log('  Linux: ~/.config/claude/claude_desktop_config.json');
     return true;
   }
-} 
+}

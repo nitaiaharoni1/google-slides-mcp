@@ -5,7 +5,11 @@
 import { Client, ClientConfig } from 'pg';
 import DatabaseInterface from './base';
 import { QUERY_LIMITS } from '../config/constants';
-import { SSLConfigManager, ConnectionErrorHandler, ConnectionLogger } from '../utils/connection-manager';
+import {
+  SSLConfigManager,
+  ConnectionErrorHandler,
+  ConnectionLogger,
+} from '../utils/connection-manager';
 import {
   DatabaseType,
   DatabaseQueryResult,
@@ -13,7 +17,7 @@ import {
   SchemaQueries,
   InfoQueries,
   DataTypeMap,
-  DatabaseConfig
+  DatabaseConfig,
 } from '../types/database';
 
 class PostgreSQLDatabase extends DatabaseInterface {
@@ -26,17 +30,19 @@ class PostgreSQLDatabase extends DatabaseInterface {
 
   async connect(): Promise<void> {
     ConnectionLogger.logAttempt(this.type);
-    
+
     try {
       const config = this._buildConnectionConfig();
-      
+
       // Debug logging
       if (process.env.NODE_ENV === 'test') {
         console.error(`🔍 PostgreSQL Connection Debug:`);
-        console.error(`   - Connection String: ${this.connectionString.replace(/:[^:@]*@/, ':***@')}`);
+        console.error(
+          `   - Connection String: ${this.connectionString.replace(/:[^:@]*@/, ':***@')}`,
+        );
         console.error(`   - Config:`, JSON.stringify(config, null, 2));
       }
-      
+
       this.client = new Client(config);
       await this.client.connect();
 
@@ -65,7 +71,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
     }
 
     const result = await this.client.query(query, params);
-    
+
     return this._standardizeResult(result);
   }
 
@@ -79,8 +85,8 @@ class PostgreSQLDatabase extends DatabaseInterface {
 
   getInfoQueries(): InfoQueries {
     return {
-      version: "SELECT version() as version",
-      size: "SELECT pg_size_pretty(pg_database_size(current_database())) as database_size",
+      version: 'SELECT version() as version',
+      size: 'SELECT pg_size_pretty(pg_database_size(current_database())) as database_size',
       settings: `
         SELECT name, setting, unit, short_desc 
         FROM pg_settings 
@@ -99,7 +105,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
         WHERE pid != pg_backend_pid()
         GROUP BY state
         ORDER BY connection_count DESC
-      `
+      `,
     };
   }
 
@@ -122,7 +128,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
         
         ORDER BY table_name
       `,
-      
+
       listSchemas: `
         SELECT schema_name,
                schema_owner,
@@ -134,7 +140,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
         FROM information_schema.schemata
         ORDER BY schema_type, schema_name
       `,
-      
+
       describeTable: `
         SELECT column_name,
                data_type,
@@ -147,7 +153,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
         WHERE table_name = $1 AND table_schema = 'public'
         ORDER BY ordinal_position
       `,
-      
+
       listIndexes: `
         SELECT 
           schemaname,
@@ -158,19 +164,19 @@ class PostgreSQLDatabase extends DatabaseInterface {
         FROM pg_indexes 
         LEFT JOIN pg_class c ON c.relname = indexname
         LEFT JOIN pg_index i ON i.indexrelid = c.oid
-      `
+      `,
     };
   }
 
   override getDataTypeMap(): DataTypeMap {
     return {
-      'string': 'TEXT',
-      'number': 'NUMERIC',
-      'integer': 'INTEGER',
-      'boolean': 'BOOLEAN',
-      'date': 'TIMESTAMP',
-      'json': 'JSONB',
-      'uuid': 'UUID'
+      string: 'TEXT',
+      number: 'NUMERIC',
+      integer: 'INTEGER',
+      boolean: 'BOOLEAN',
+      date: 'TIMESTAMP',
+      json: 'JSONB',
+      uuid: 'UUID',
     };
   }
 
@@ -182,7 +188,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
     };
 
     const sslConfig = SSLConfigManager.getSSLConfig(this.connectionString);
-    
+
     if (sslConfig) {
       config.ssl = sslConfig;
       SSLConfigManager.logSSLStatus(this.type, sslConfig);
@@ -198,12 +204,14 @@ class PostgreSQLDatabase extends DatabaseInterface {
       throw new Error('Database not connected');
     }
 
-    const result = await this.client.query('SELECT NOW() as current_time, version() as db_version');
+    const result = await this.client.query(
+      'SELECT NOW() as current_time, version() as db_version',
+    );
     const { current_time, db_version } = result.rows[0];
-    
+
     return {
       serverTime: current_time,
-      version: db_version.split(',')[0]
+      version: db_version.split(',')[0],
     };
   }
 
@@ -212,7 +220,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
       rows: result.rows,
       rowCount: result.rowCount,
       command: result.command,
-      fields: result.fields
+      fields: result.fields,
     };
   }
 
@@ -220,29 +228,83 @@ class PostgreSQLDatabase extends DatabaseInterface {
     const trimmedQuery = query.trim().toLowerCase();
 
     // Allow read operations
-    const allowedReadStarts = ['select', 'with', 'show', 'explain'];
+    const allowedReadStarts = [
+      'select',
+      'with',
+      'show',
+      'explain',
+      'describe',
+      'desc',
+    ];
+
     // Allow write operations (non-destructive)
     const allowedWriteStarts = ['insert', 'update', 'alter', 'create'];
-    
-    const isAllowedOperation = allowedReadStarts.some(keyword => trimmedQuery.startsWith(keyword)) ||
-                              allowedWriteStarts.some(keyword => trimmedQuery.startsWith(keyword));
 
-    if (!isAllowedOperation) {
-      throw new Error('Only SELECT, WITH, SHOW, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for PostgreSQL');
-    }
+    // Allow PostgreSQL-specific operations
+    const allowedPGSpecificStarts = [
+      'vacuum',
+      'analyze',
+      'reindex',
+      'cluster',
+      'comment',
+      'grant',
+      'revoke',
+      'copy',
+      'listen',
+      'notify',
+      'unlisten',
+      'prepare',
+      'execute',
+      'deallocate',
+      'begin',
+      'commit',
+      'rollback',
+      'savepoint',
+      'release',
+      'set',
+      'reset',
+      'discard',
+    ];
 
-    // Block destructive operations
-    const destructiveKeywords = ['drop', 'delete', 'truncate'];
-    const hasDestructiveKeywords = destructiveKeywords.some(keyword =>
-      trimmedQuery.includes(keyword.toLowerCase())
+    // Allow utility operations
+    const allowedUtilityStarts = ['refresh', 'checkpoint', 'load'];
+
+    const allAllowedStarts = [
+      ...allowedReadStarts,
+      ...allowedWriteStarts,
+      ...allowedPGSpecificStarts,
+      ...allowedUtilityStarts,
+    ];
+
+    const isAllowedOperation = allAllowedStarts.some((keyword) =>
+      trimmedQuery.startsWith(keyword),
     );
 
-    if (hasDestructiveKeywords) {
-      throw new Error('Destructive operations (DROP, DELETE, TRUNCATE) are not allowed for safety.');
+    if (!isAllowedOperation) {
+      throw new Error(
+        `Operation not allowed. Supported operations: ${allAllowedStarts.join(', ').toUpperCase()}`,
+      );
+    }
+
+    // Block destructive operations (but allow them in specific contexts)
+    const destructivePatterns = [
+      /\bdrop\s+(table|database|schema|index|view|function|procedure|trigger)\b/i,
+      /\bdelete\s+from\b/i,
+      /\btruncate\s+table\b/i,
+    ];
+
+    const hasDestructivePattern = destructivePatterns.some((pattern) =>
+      pattern.test(trimmedQuery),
+    );
+
+    if (hasDestructivePattern) {
+      throw new Error(
+        'Destructive operations (DROP TABLE/DATABASE/SCHEMA, DELETE FROM, TRUNCATE TABLE) are blocked for safety. Use specific admin tools if needed.',
+      );
     }
 
     return query;
   }
 }
 
-export default PostgreSQLDatabase; 
+export default PostgreSQLDatabase;

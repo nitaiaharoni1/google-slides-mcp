@@ -4,7 +4,12 @@
  */
 
 import { Client } from 'pg';
-import { initializeDatabase, closeDatabase, getDatabase, getDatabaseType } from '../src/database';
+import {
+  initializeDatabase,
+  closeDatabase,
+  getDatabase,
+  getDatabaseType,
+} from '../src/database';
 import { handleToolCall } from '../src/tools/index';
 import { MCPTextContent } from '../src/types/mcp';
 
@@ -15,13 +20,19 @@ describe('Database Integration Tests', () => {
 
   beforeAll(async () => {
     if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL environment variable is required for integration tests');
+      throw new Error(
+        'DATABASE_URL environment variable is required for integration tests',
+      );
     }
 
     console.error('🔍 Integration Test Setup Debug:');
-    console.error(`   - DATABASE_URL: ${process.env.DATABASE_URL.replace(/:[^:@]*@/, ':***@')}`);
+    console.error(
+      `   - DATABASE_URL: ${process.env.DATABASE_URL.replace(/:[^:@]*@/, ':***@')}`,
+    );
     console.error(`   - NODE_ENV: ${process.env.NODE_ENV}`);
-    console.error(`   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`);
+    console.error(
+      `   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`,
+    );
 
     // Direct database connection for verification
     console.error('📡 Creating direct pg client connection...');
@@ -29,8 +40,8 @@ describe('Database Integration Tests', () => {
       connectionString: process.env.DATABASE_URL,
       ssl: {
         rejectUnauthorized: false,
-        checkServerIdentity: () => undefined
-      }
+        checkServerIdentity: () => undefined,
+      },
     });
 
     console.error('🔌 Connecting direct pg client...');
@@ -52,8 +63,10 @@ describe('Database Integration Tests', () => {
 
   describe('Database Connection', () => {
     test('should connect to database successfully', async () => {
-      const result = await client.query('SELECT NOW() as current_time, version() as db_version');
-      
+      const result = await client.query(
+        'SELECT NOW() as current_time, version() as db_version',
+      );
+
       expect(result.rows).toHaveLength(1);
       expect(result.rows[0]).toHaveProperty('current_time');
       expect(result.rows[0]).toHaveProperty('db_version');
@@ -63,7 +76,7 @@ describe('Database Integration Tests', () => {
     test('should have MCP database initialized', () => {
       const db = getDatabase();
       const dbType = getDatabaseType();
-      
+
       expect(db).toBeDefined();
       expect(dbType).toBe('postgresql');
       expect(db?.getConnectionStatus()).toBe(true);
@@ -76,20 +89,20 @@ describe('Database Integration Tests', () => {
         params: {
           name: 'query_database',
           arguments: {
-            query: 'SELECT 1 as test_value, \'hello\' as message'
-          }
-        }
+            query: "SELECT 1 as test_value, 'hello' as message",
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.rows).toContainEqual({
         test_value: 1,
-        message: 'hello'
+        message: 'hello',
       });
     });
 
@@ -98,15 +111,17 @@ describe('Database Integration Tests', () => {
         params: {
           name: 'query_database',
           arguments: {
-            query: 'DROP TABLE users'
-          }
-        }
+            query: 'DROP TABLE users',
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result.isError).toBe(true);
-      expect((result.content[0] as MCPTextContent).text).toContain('Destructive operations');
+      expect((result.content[0] as MCPTextContent).text).toContain(
+        'Destructive operations',
+      );
     });
 
     test('query_database - should allow INSERT queries', async () => {
@@ -115,13 +130,14 @@ describe('Database Integration Tests', () => {
         params: {
           name: 'query_database',
           arguments: {
-            query: 'SELECT 1 WHERE EXISTS (SELECT * FROM information_schema.tables LIMIT 0) -- INSERT simulation'
-          }
-        }
+            query:
+              'SELECT 1 WHERE EXISTS (SELECT * FROM information_schema.tables LIMIT 0) -- INSERT simulation',
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result.isError).toBeFalsy();
     });
 
@@ -130,15 +146,17 @@ describe('Database Integration Tests', () => {
         params: {
           name: 'query_database',
           arguments: {
-            query: 'DELETE FROM users WHERE id = 1'
-          }
-        }
+            query: 'DELETE FROM users WHERE id = 1',
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result.isError).toBe(true);
-      expect((result.content[0] as MCPTextContent).text).toContain('Destructive operations');
+      expect((result.content[0] as MCPTextContent).text).toContain(
+        'Destructive operations',
+      );
     });
 
     test('explain_query - should generate query plan', async () => {
@@ -147,13 +165,13 @@ describe('Database Integration Tests', () => {
           name: 'explain_query',
           arguments: {
             query: 'SELECT 1',
-            analyze: false
-          }
-        }
+            analyze: false,
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
     });
@@ -164,15 +182,15 @@ describe('Database Integration Tests', () => {
       const request = {
         params: {
           name: 'list_schemas',
-          arguments: {}
-        }
+          arguments: {},
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.schemas).toBeDefined();
       expect(Array.isArray(content.schemas)).toBe(true);
@@ -183,19 +201,19 @@ describe('Database Integration Tests', () => {
       const request = {
         params: {
           name: 'list_tables',
-          arguments: {}
-        }
+          arguments: {},
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.tables).toBeDefined();
       expect(Array.isArray(content.tables)).toBe(true);
-      
+
       // Store first table for later tests
       if (content.tables.length > 0) {
         testTableName = content.tables[0].table_name;
@@ -221,22 +239,22 @@ describe('Database Integration Tests', () => {
         params: {
           name: 'describe_table',
           arguments: {
-            table_name: testTableName
-          }
-        }
+            table_name: testTableName,
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.table_name).toBe(testTableName);
       expect(content.columns).toBeDefined();
       expect(Array.isArray(content.columns)).toBe(true);
       expect(content.columns.length).toBeGreaterThan(0);
-      
+
       // Store first column for later tests
       if (content.columns.length > 0) {
         testColumnName = content.columns[0].column_name;
@@ -247,15 +265,15 @@ describe('Database Integration Tests', () => {
       const request = {
         params: {
           name: 'list_indexes',
-          arguments: {}
-        }
+          arguments: {},
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.indexes).toBeDefined();
       expect(Array.isArray(content.indexes)).toBe(true);
@@ -265,15 +283,15 @@ describe('Database Integration Tests', () => {
       const request = {
         params: {
           name: 'get_foreign_keys',
-          arguments: {}
-        }
+          arguments: {},
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.foreign_keys).toBeDefined();
       expect(Array.isArray(content.foreign_keys)).toBe(true);
@@ -283,15 +301,15 @@ describe('Database Integration Tests', () => {
       const request = {
         params: {
           name: 'list_functions',
-          arguments: {}
-        }
+          arguments: {},
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.functions).toBeDefined();
       expect(Array.isArray(content.functions)).toBe(true);
@@ -304,16 +322,16 @@ describe('Database Integration Tests', () => {
         params: {
           name: 'get_table_stats',
           arguments: {
-            schema_name: 'public'
-          }
-        }
+            schema_name: 'public',
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.schema).toBe('public');
       expect(content.table_sizes).toBeDefined();
@@ -324,15 +342,15 @@ describe('Database Integration Tests', () => {
       const request = {
         params: {
           name: 'get_database_info',
-          arguments: {}
-        }
+          arguments: {},
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.databaseType).toBe('postgresql');
       expect(content.version).toBeDefined();
@@ -340,7 +358,9 @@ describe('Database Integration Tests', () => {
 
     test('analyze_column - should analyze column data', async () => {
       if (!testTableName || !testColumnName) {
-        console.warn('Skipping analyze_column test - no table/column available');
+        console.warn(
+          'Skipping analyze_column test - no table/column available',
+        );
         return;
       }
 
@@ -349,16 +369,16 @@ describe('Database Integration Tests', () => {
           name: 'analyze_column',
           arguments: {
             table_name: testTableName,
-            column_name: testColumnName
-          }
-        }
+            column_name: testColumnName,
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.table_name).toBe(testTableName);
       expect(content.column_name).toBe(testColumnName);
@@ -373,16 +393,16 @@ describe('Database Integration Tests', () => {
           name: 'search_tables',
           arguments: {
             search_term: 'id',
-            limit: 10
-          }
-        }
+            limit: 10,
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result).toHaveValidQueryStructure();
       expect(result.isError).toBeFalsy();
-      
+
       const content = JSON.parse((result.content[0] as MCPTextContent).text);
       expect(content.search_term).toBe('id');
       expect(content.table_matches).toBeDefined();
@@ -397,14 +417,16 @@ describe('Database Integration Tests', () => {
       const request = {
         params: {
           name: 'unknown_tool',
-          arguments: {}
-        }
+          arguments: {},
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result.isError).toBe(true);
-      expect((result.content[0] as MCPTextContent).text).toContain('Unknown tool');
+      expect((result.content[0] as MCPTextContent).text).toContain(
+        'Unknown tool',
+      );
     });
 
     test('should handle database disconnection', async () => {
@@ -415,18 +437,20 @@ describe('Database Integration Tests', () => {
         params: {
           name: 'query_database',
           arguments: {
-            query: 'SELECT 1'
-          }
-        }
+            query: 'SELECT 1',
+          },
+        },
       };
 
       const result = await handleToolCall(request);
-      
+
       expect(result.isError).toBe(true);
-      expect((result.content[0] as MCPTextContent).text).toContain('Database connection not established');
+      expect((result.content[0] as MCPTextContent).text).toContain(
+        'Database connection not established',
+      );
 
       // Reconnect for remaining tests
       await initializeDatabase(process.env.DATABASE_URL!);
     });
   });
-}); 
+});

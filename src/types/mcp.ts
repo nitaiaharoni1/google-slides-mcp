@@ -181,4 +181,4 @@ export interface FormattedColumnAnalysisData {
 export interface FormattedDatabaseInfoData {
   [key: string]: any;
   databaseType: string;
-} 
+}

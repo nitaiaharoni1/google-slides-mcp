@@ -6,14 +6,17 @@ import * as sqlite3 from 'sqlite3';
 import * as path from 'path';
 import * as fs from 'fs';
 import DatabaseInterface from './base';
-import { ConnectionLogger, ConnectionErrorHandler } from '../utils/connection-manager';
+import {
+  ConnectionLogger,
+  ConnectionErrorHandler,
+} from '../utils/connection-manager';
 import {
   DatabaseType,
   DatabaseQueryResult,
   DatabaseConnectionInfo,
   SchemaQueries,
   InfoQueries,
-  DataTypeMap
+  DataTypeMap,
 } from '../types/database';
 
 class SQLiteDatabase extends DatabaseInterface {
@@ -28,12 +31,12 @@ class SQLiteDatabase extends DatabaseInterface {
 
   async connect(): Promise<void> {
     ConnectionLogger.logAttempt(this.type);
-    
+
     try {
       await this._ensureDirectoryExists();
-      
+
       this.client = new sqlite3.Database(this.filePath);
-      
+
       const connectionInfo = await this._getConnectionInfo();
       ConnectionLogger.logSuccess(this.type, connectionInfo);
 
@@ -87,12 +90,12 @@ class SQLiteDatabase extends DatabaseInterface {
 
   getInfoQueries(): InfoQueries {
     return {
-      version: "SELECT sqlite_version() as version",
-      size: "SELECT page_count * page_size as database_size FROM pragma_page_count(), pragma_page_size()",
+      version: 'SELECT sqlite_version() as version',
+      size: 'SELECT page_count * page_size as database_size FROM pragma_page_count(), pragma_page_size()',
       settings: `
         PRAGMA compile_options;
       `,
-      activity: "SELECT 'no_activity_tracking' as status"
+      activity: "SELECT 'no_activity_tracking' as status",
     };
   }
 
@@ -106,17 +109,17 @@ class SQLiteDatabase extends DatabaseInterface {
         AND name NOT LIKE 'sqlite_%'
         ORDER BY name
       `,
-      
+
       listSchemas: `
         SELECT 'main' as schema_name,
                '' as schema_owner,
                'default' as schema_type
       `,
-      
+
       describeTable: `
         PRAGMA table_info(?)
       `,
-      
+
       listIndexes: `
         SELECT name as indexname,
                tbl_name as tablename,
@@ -126,39 +129,39 @@ class SQLiteDatabase extends DatabaseInterface {
         WHERE type = 'index' 
         AND tbl_name = ?
         ORDER BY name
-      `
+      `,
     };
   }
 
   override getDataTypeMap(): DataTypeMap {
     return {
-      'string': 'TEXT',
-      'number': 'REAL',
-      'integer': 'INTEGER',
-      'boolean': 'INTEGER',
-      'date': 'TEXT',
-      'json': 'TEXT'
+      string: 'TEXT',
+      number: 'REAL',
+      integer: 'INTEGER',
+      boolean: 'INTEGER',
+      date: 'TEXT',
+      json: 'TEXT',
     };
   }
 
   protected async _getConnectionInfo(): Promise<DatabaseConnectionInfo> {
     return {
       filePath: this.filePath,
-      version: '3.x.x' // Default version, could query for actual
+      version: '3.x.x', // Default version, could query for actual
     };
   }
 
   private _parseConnectionString(connectionString: string): string {
     let cleanPath = connectionString;
-    
+
     // Remove sqlite:// or sqlite: prefixes
     cleanPath = cleanPath.replace(/^sqlite:\/\//, '').replace(/^sqlite:/, '');
-    
+
     // If it's a relative path, resolve it
     if (!path.isAbsolute(cleanPath)) {
       cleanPath = path.resolve(process.cwd(), cleanPath);
     }
-    
+
     return cleanPath;
   }
 
@@ -174,7 +177,7 @@ class SQLiteDatabase extends DatabaseInterface {
       rows: rows,
       rowCount: rows.length,
       command: 'SELECT',
-      fields: []
+      fields: [],
     };
   }
 
@@ -185,26 +188,31 @@ class SQLiteDatabase extends DatabaseInterface {
     const allowedReadStarts = ['select', 'with', 'pragma', 'explain'];
     // Allow write operations (non-destructive)
     const allowedWriteStarts = ['insert', 'update', 'alter', 'create'];
-    
-    const isAllowedOperation = allowedReadStarts.some(keyword => trimmedQuery.startsWith(keyword)) ||
-                              allowedWriteStarts.some(keyword => trimmedQuery.startsWith(keyword));
+
+    const isAllowedOperation =
+      allowedReadStarts.some((keyword) => trimmedQuery.startsWith(keyword)) ||
+      allowedWriteStarts.some((keyword) => trimmedQuery.startsWith(keyword));
 
     if (!isAllowedOperation) {
-      throw new Error('Only SELECT, WITH, PRAGMA, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for SQLite');
+      throw new Error(
+        'Only SELECT, WITH, PRAGMA, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for SQLite',
+      );
     }
 
     // Block destructive operations
     const destructiveKeywords = ['drop', 'delete'];
-    const hasDestructiveKeywords = destructiveKeywords.some(keyword =>
-      trimmedQuery.includes(keyword.toLowerCase())
+    const hasDestructiveKeywords = destructiveKeywords.some((keyword) =>
+      trimmedQuery.includes(keyword.toLowerCase()),
     );
 
     if (hasDestructiveKeywords) {
-      throw new Error('Destructive operations (DROP, DELETE) are not allowed for safety.');
+      throw new Error(
+        'Destructive operations (DROP, DELETE) are not allowed for safety.',
+      );
     }
 
     return query;
   }
 }
 
-export default SQLiteDatabase; 
+export default SQLiteDatabase;

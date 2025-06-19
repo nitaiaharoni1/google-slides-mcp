@@ -17,9 +17,11 @@ let currentDatabaseType: DatabaseType | null = null;
 /**
  * Initialize database connection
  */
-export async function initializeDatabase(connectionString?: string): Promise<void> {
+export async function initializeDatabase(
+  connectionString?: string,
+): Promise<void> {
   const connStr = connectionString || process.env.DATABASE_URL;
-  
+
   if (!connStr) {
     throw new Error('No database connection string provided');
   }
@@ -33,13 +35,18 @@ export async function initializeDatabase(connectionString?: string): Promise<voi
     // Create new database instance
     database = DatabaseFactory.create(connStr);
     currentDatabaseType = database.getType();
-    
+
     // Connect to the database
     await database.connect();
-    
-    console.error(`✅ Database initialized: ${currentDatabaseType.toUpperCase()}`);
+
+    console.error(
+      `✅ Database initialized: ${currentDatabaseType.toUpperCase()}`,
+    );
   } catch (error) {
-    console.error('❌ Database initialization failed:', (error as Error).message);
+    console.error(
+      '❌ Database initialization failed:',
+      (error as Error).message,
+    );
     throw error;
   }
 }
@@ -49,7 +56,9 @@ export async function initializeDatabase(connectionString?: string): Promise<voi
  */
 export function getDatabase(): DatabaseInterface {
   if (!database) {
-    throw new Error('Database not initialized. Call initializeDatabase() first.');
+    throw new Error(
+      'Database not initialized. Call initializeDatabase() first.',
+    );
   }
   return database;
 }
@@ -106,10 +115,10 @@ export function getConnectionStringExamples() {
  */
 export function ensureDatabaseConnection(): DatabaseInterface {
   const db = getDatabase();
-  
+
   if (!db.getConnectionStatus()) {
     throw new Error('Database connection lost. Please reconnect.');
   }
-  
+
   return db;
-} 
+}

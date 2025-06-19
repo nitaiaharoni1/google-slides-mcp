@@ -9,7 +9,7 @@ import {
   DatabaseConnectionInfo,
   SchemaQueries,
   InfoQueries,
-  DataTypeMap
+  DataTypeMap,
 } from '../types/database';
 
 abstract class DatabaseInterface {
@@ -74,27 +74,32 @@ abstract class DatabaseInterface {
   validateQuery(query: string): string {
     // Default implementation - override for database-specific validation
     const trimmedQuery = query.trim().toLowerCase();
-    
+
     // Allow read operations
     const allowedReadStarts = ['select', 'with', 'show', 'describe', 'explain'];
     // Allow write operations (non-destructive)
     const allowedWriteStarts = ['insert', 'update', 'alter', 'create'];
-    
-    const isAllowedOperation = allowedReadStarts.some(keyword => trimmedQuery.startsWith(keyword)) ||
-                              allowedWriteStarts.some(keyword => trimmedQuery.startsWith(keyword));
-    
+
+    const isAllowedOperation =
+      allowedReadStarts.some((keyword) => trimmedQuery.startsWith(keyword)) ||
+      allowedWriteStarts.some((keyword) => trimmedQuery.startsWith(keyword));
+
     if (!isAllowedOperation) {
-      throw new Error('Only SELECT, WITH, SHOW, DESCRIBE, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for security reasons');
+      throw new Error(
+        'Only SELECT, WITH, SHOW, DESCRIBE, EXPLAIN, INSERT, UPDATE, ALTER, and CREATE queries are allowed for security reasons',
+      );
     }
 
     // Block destructive operations
     const destructiveKeywords = ['drop', 'delete', 'truncate'];
-    const hasDestructiveKeywords = destructiveKeywords.some(keyword =>
-      trimmedQuery.includes(keyword.toLowerCase())
+    const hasDestructiveKeywords = destructiveKeywords.some((keyword) =>
+      trimmedQuery.includes(keyword.toLowerCase()),
     );
 
     if (hasDestructiveKeywords) {
-      throw new Error('Destructive operations (DROP, DELETE, TRUNCATE) are not allowed for safety.');
+      throw new Error(
+        'Destructive operations (DROP, DELETE, TRUNCATE) are not allowed for safety.',
+      );
     }
 
     return query;
@@ -107,10 +112,10 @@ abstract class DatabaseInterface {
   getDataTypeMap(): DataTypeMap {
     return {
       // Default mappings - override in specific implementations
-      'string': 'TEXT',
-      'number': 'NUMERIC',
-      'boolean': 'BOOLEAN',
-      'date': 'TIMESTAMP'
+      string: 'TEXT',
+      number: 'NUMERIC',
+      boolean: 'BOOLEAN',
+      date: 'TIMESTAMP',
     };
   }
 
@@ -120,4 +125,4 @@ abstract class DatabaseInterface {
   protected abstract _getConnectionInfo(): Promise<DatabaseConnectionInfo>;
 }
 
-export default DatabaseInterface; 
+export default DatabaseInterface;

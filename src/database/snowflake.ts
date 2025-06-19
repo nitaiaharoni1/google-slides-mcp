@@ -5,14 +5,17 @@
 import * as snowflake from 'snowflake-sdk';
 import DatabaseInterface from './base';
 import { QUERY_LIMITS } from '../config/constants';
-import { ConnectionErrorHandler, ConnectionLogger } from '../utils/connection-manager';
+import {
+  ConnectionErrorHandler,
+  ConnectionLogger,
+} from '../utils/connection-manager';
 import {
   DatabaseType,
   DatabaseQueryResult,
   DatabaseConnectionInfo,
   SchemaQueries,
   InfoQueries,
-  DataTypeMap
+  DataTypeMap,
 } from '../types/database';
 
 class SnowflakeDatabase extends DatabaseInterface {
@@ -27,10 +30,10 @@ class SnowflakeDatabase extends DatabaseInterface {
 
   async connect(): Promise<void> {
     ConnectionLogger.logAttempt(this.type);
-    
+
     try {
       const config = this._buildConnectionConfig();
-      
+
       // Debug logging
       if (process.env.NODE_ENV === 'test') {
         console.error(`🔍 Snowflake Connection Debug:`);
@@ -39,9 +42,9 @@ class SnowflakeDatabase extends DatabaseInterface {
         console.error(`   - Database: ${config.database || 'default'}`);
         console.error(`   - Warehouse: ${config.warehouse || 'default'}`);
       }
-      
+
       this.client = snowflake.createConnection(config);
-      
+
       await new Promise<void>((resolve, reject) => {
         this.client!.connect((err: any, conn: any) => {
           if (err) {
@@ -91,7 +94,7 @@ class SnowflakeDatabase extends DatabaseInterface {
           } else {
             resolve(this._standardizeResult(stmt, rows || []));
           }
-        }
+        },
       });
     });
   }
@@ -106,7 +109,7 @@ class SnowflakeDatabase extends DatabaseInterface {
 
   getInfoQueries(): InfoQueries {
     return {
-      version: "SELECT CURRENT_VERSION() as version",
+      version: 'SELECT CURRENT_VERSION() as version',
       size: `
         SELECT 
           SUM(BYTES) / (1024*1024*1024) as database_size_gb,
@@ -126,7 +129,7 @@ class SnowflakeDatabase extends DatabaseInterface {
         GROUP BY QUERY_TYPE
         ORDER BY query_count DESC
         LIMIT 10
-      `
+      `,
     };
   }
 
@@ -141,7 +144,7 @@ class SnowflakeDatabase extends DatabaseInterface {
         WHERE TABLE_SCHEMA = CURRENT_SCHEMA()
         ORDER BY TABLE_NAME
       `,
-      
+
       listSchemas: `
         SELECT 
           SCHEMA_NAME as schema_name,
@@ -155,7 +158,7 @@ class SnowflakeDatabase extends DatabaseInterface {
         WHERE CATALOG_NAME = CURRENT_DATABASE()
         ORDER BY schema_type, SCHEMA_NAME
       `,
-      
+
       describeTable: `
         SELECT 
           COLUMN_NAME as column_name,
@@ -170,7 +173,7 @@ class SnowflakeDatabase extends DatabaseInterface {
           AND TABLE_SCHEMA = CURRENT_SCHEMA()
         ORDER BY ORDINAL_POSITION
       `,
-      
+
       listIndexes: `
         SELECT 
           TABLE_SCHEMA as schemaname,
@@ -181,20 +184,20 @@ class SnowflakeDatabase extends DatabaseInterface {
         FROM INFORMATION_SCHEMA.TABLES
         WHERE TABLE_SCHEMA = CURRENT_SCHEMA()
           AND TABLE_TYPE = 'BASE TABLE'
-      `
+      `,
     };
   }
 
   override getDataTypeMap(): DataTypeMap {
     return {
-      'string': 'VARCHAR',
-      'number': 'NUMBER',
-      'integer': 'INTEGER',
-      'boolean': 'BOOLEAN',
-      'date': 'TIMESTAMP_NTZ',
-      'json': 'VARIANT',
-      'array': 'ARRAY',
-      'object': 'OBJECT'
+      string: 'VARCHAR',
+      number: 'NUMBER',
+      integer: 'INTEGER',
+      boolean: 'BOOLEAN',
+      date: 'TIMESTAMP_NTZ',
+      json: 'VARIANT',
+      array: 'ARRAY',
+      object: 'OBJECT',
     };
   }
 
@@ -211,18 +214,22 @@ class SnowflakeDatabase extends DatabaseInterface {
         database: url.pathname.slice(1).split('/')[0] || undefined,
         schema: url.pathname.slice(1).split('/')[1] || undefined,
         warehouse: url.searchParams.get('warehouse') || undefined,
-        role: url.searchParams.get('role') || undefined
+        role: url.searchParams.get('role') || undefined,
       };
     } else if (connectionString.includes('.snowflakecomputing.com')) {
       // Handle account.snowflakecomputing.com format
       // This is a simplified parser - in production you might want more robust parsing
-      throw new Error('Please use snowflake:// URL format for connection string');
+      throw new Error(
+        'Please use snowflake:// URL format for connection string',
+      );
     } else {
       // Try to parse as JSON configuration
       try {
         return JSON.parse(connectionString);
       } catch {
-        throw new Error('Invalid Snowflake connection string format. Use snowflake://username:password@account.snowflakecomputing.com/database/schema?warehouse=wh&role=role');
+        throw new Error(
+          'Invalid Snowflake connection string format. Use snowflake://username:password@account.snowflakecomputing.com/database/schema?warehouse=wh&role=role',
+        );
       }
     }
   }
@@ -234,7 +241,7 @@ class SnowflakeDatabase extends DatabaseInterface {
       password: this.connectionConfig.password,
       timeout: QUERY_LIMITS.CONNECTION_TIMEOUT,
       clientSessionKeepAlive: true,
-      clientSessionKeepAliveHeartbeatFrequency: 3600
+      clientSessionKeepAliveHeartbeatFrequency: 3600,
     };
 
     // Optional parameters
@@ -260,15 +267,17 @@ class SnowflakeDatabase extends DatabaseInterface {
     }
 
     try {
-      const result = await this.query('SELECT CURRENT_VERSION() as version, CURRENT_TIMESTAMP() as server_time');
+      const result = await this.query(
+        'SELECT CURRENT_VERSION() as version, CURRENT_TIMESTAMP() as server_time',
+      );
       return {
         version: result.rows[0]?.version || 'Unknown',
-        serverTime: result.rows[0]?.server_time || new Date().toISOString()
+        serverTime: result.rows[0]?.server_time || new Date().toISOString(),
       };
     } catch (error) {
       return {
         version: 'Unknown',
-        serverTime: new Date().toISOString()
+        serverTime: new Date().toISOString(),
       };
     }
   }
@@ -278,27 +287,31 @@ class SnowflakeDatabase extends DatabaseInterface {
       rows: rows || [],
       rowCount: rows ? rows.length : 0,
       command: stmt.getSqlText() || 'UNKNOWN',
-      fields: stmt.getColumns() || []
+      fields: stmt.getColumns() || [],
     };
   }
 
   private _validateSnowflakeQuery(query: string): string {
     // Call parent validation first
     const baseValidated = super.validateQuery(query);
-    
+
     const trimmedQuery = baseValidated.trim().toLowerCase();
-    
+
     // Snowflake-specific validations
     if (trimmedQuery.includes('put ') || trimmedQuery.includes('get ')) {
-      throw new Error('PUT and GET commands are not allowed for security reasons');
+      throw new Error(
+        'PUT and GET commands are not allowed for security reasons',
+      );
     }
-    
+
     if (trimmedQuery.includes('copy into')) {
-      throw new Error('COPY INTO commands are not allowed for security reasons');
+      throw new Error(
+        'COPY INTO commands are not allowed for security reasons',
+      );
     }
 
     return baseValidated;
   }
 }
 
-export default SnowflakeDatabase; 
+export default SnowflakeDatabase;

@@ -20,7 +20,12 @@ export const SERVER_CONFIG: MCPServerConfig = {
 } as const;
 
 // Supported database types
-export const SUPPORTED_DATABASE_TYPES = ['postgresql', 'mysql', 'sqlite', 'snowflake'] as const;
+export const SUPPORTED_DATABASE_TYPES = [
+  'postgresql',
+  'mysql',
+  'sqlite',
+  'snowflake',
+] as const;
 
 // Cloud provider domains for SSL configuration
 export const CLOUD_PROVIDERS = [
@@ -98,4 +103,4 @@ export const DEFAULT_CONNECTION_OPTIONS = {
     clientSessionKeepAlive: true,
     clientSessionKeepAliveHeartbeatFrequency: 3600,
   },
-} as const; 
+} as const;

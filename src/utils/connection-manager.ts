@@ -3,7 +3,11 @@
  * Handles common connection concerns across all database types with proper SSL support
  */
 
-import { DatabaseType, SSLConfig, DatabaseConnectionInfo } from '../types/database';
+import {
+  DatabaseType,
+  SSLConfig,
+  DatabaseConnectionInfo,
+} from '../types/database';
 import { CLOUD_PROVIDERS } from '../config/constants';
 import { URL } from 'url';
 
@@ -33,22 +37,24 @@ export class ConnectionManager {
    */
   static parseConnectionString(connectionString: string): ParsedConnection {
     // Handle SQLite file paths
-    if (!connectionString.includes('://') && 
-        (connectionString.endsWith('.db') || 
-         connectionString.endsWith('.sqlite') ||
-         connectionString.endsWith('.sqlite3') ||
-         connectionString.includes('/'))) {
+    if (
+      !connectionString.includes('://') &&
+      (connectionString.endsWith('.db') ||
+        connectionString.endsWith('.sqlite') ||
+        connectionString.endsWith('.sqlite3') ||
+        connectionString.includes('/'))
+    ) {
       return {
         type: 'sqlite',
         database: connectionString,
-        ssl: false
+        ssl: false,
       };
     }
 
     try {
       const url = new URL(connectionString);
       const protocol = url.protocol.replace(':', '');
-      
+
       // Determine database type
       let type: DatabaseType;
       if (protocol === 'postgresql' || protocol === 'postgres') {
@@ -62,9 +68,10 @@ export class ConnectionManager {
       }
 
       // Parse SSL settings
-      const sslMode = url.searchParams.get('sslmode') || url.searchParams.get('ssl');
+      const sslMode =
+        url.searchParams.get('sslmode') || url.searchParams.get('ssl');
       const isCloudDb = this.isCloudDatabase(url.hostname);
-      
+
       let ssl: boolean;
       if (sslMode) {
         ssl = sslMode !== 'disable' && sslMode !== 'false';
@@ -78,19 +85,20 @@ export class ConnectionManager {
         return {
           type: 'sqlite',
           database: url.pathname,
-          ssl: false
+          ssl: false,
         };
       }
 
       return {
         type,
         host: url.hostname,
-        port: url.port ? parseInt(url.port) : (type === 'mysql' ? 3306 : 5432),
+        port: url.port ? parseInt(url.port) : type === 'mysql' ? 3306 : 5432,
         username: url.username,
         password: url.password,
         database: url.pathname.replace('/', ''),
         ssl,
-        sslMode: sslMode || (ssl ? (isCloudDb ? 'require' : 'prefer') : 'disable')
+        sslMode:
+          sslMode || (ssl ? (isCloudDb ? 'require' : 'prefer') : 'disable'),
       };
     } catch (error) {
       throw new Error(`Invalid connection string: ${error}`);
@@ -106,10 +114,10 @@ export class ConnectionManager {
    * @returns SSL configuration object or false/undefined
    */
   static buildSSLConfig(
-    type: DatabaseType, 
-    sslEnabled: boolean, 
+    type: DatabaseType,
+    sslEnabled: boolean,
     sslMode?: string,
-    options?: { relaxedVerification?: boolean }
+    options?: { relaxedVerification?: boolean },
   ): SSLConfig | false | undefined {
     if (!sslEnabled) {
       return type === 'sqlite' ? undefined : false;
@@ -126,9 +134,9 @@ export class ConnectionManager {
     if (type === 'postgresql') {
       return {
         ...baseConfig,
-        checkServerIdentity: options?.relaxedVerification 
-          ? () => undefined 
-          : undefined
+        checkServerIdentity: options?.relaxedVerification
+          ? () => undefined
+          : undefined,
       };
     }
 
@@ -142,13 +150,14 @@ export class ConnectionManager {
    */
   static buildConnectionConfig(parsed: ParsedConnection): ConnectionConfig {
     const sslConfig = this.buildSSLConfig(
-      parsed.type, 
-      parsed.ssl, 
+      parsed.type,
+      parsed.ssl,
       parsed.sslMode,
-      { 
-        relaxedVerification: process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0' ||
-                           process.env.NODE_ENV === 'test' 
-      }
+      {
+        relaxedVerification:
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0' ||
+          process.env.NODE_ENV === 'test',
+      },
     );
 
     switch (parsed.type) {
@@ -162,7 +171,7 @@ export class ConnectionManager {
           ssl: sslConfig,
           connectionTimeoutMillis: 30000,
           query_timeout: 30000,
-          statement_timeout: 30000
+          statement_timeout: 30000,
         };
 
       case 'mysql':
@@ -175,7 +184,7 @@ export class ConnectionManager {
           ssl: sslConfig,
           connectTimeout: 30000,
           acquireTimeout: 30000,
-          timeout: 30000
+          timeout: 30000,
         };
 
       case 'sqlite':
@@ -191,7 +200,7 @@ export class ConnectionManager {
 
         return {
           filename: parsed.database,
-          mode
+          mode,
         };
 
       default:
@@ -205,7 +214,10 @@ export class ConnectionManager {
    * @returns Cloud provider name or 'unknown'
    */
   static detectCloudProvider(hostname: string): string {
-    if (hostname.includes('rds.amazonaws.com') || hostname.includes('amazonaws.com')) {
+    if (
+      hostname.includes('rds.amazonaws.com') ||
+      hostname.includes('amazonaws.com')
+    ) {
       return 'aws';
     }
     if (hostname.includes('database.windows.net')) {
@@ -229,11 +241,13 @@ export class ConnectionManager {
    * @returns True if cloud database
    */
   static isCloudDatabase(hostname: string): boolean {
-    if (hostname === 'localhost' || 
-        hostname === '127.0.0.1' || 
-        hostname.startsWith('192.168.') ||
-        hostname.startsWith('10.') ||
-        hostname.startsWith('172.')) {
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    ) {
       return false;
     }
     return this.detectCloudProvider(hostname) !== 'unknown';
@@ -245,7 +259,10 @@ export class ConnectionManager {
    * @param isCloudDatabase - Whether this is a cloud database
    * @returns Recommended SSL mode
    */
-  static getRecommendedSSLMode(environment: string, isCloudDatabase: boolean): string {
+  static getRecommendedSSLMode(
+    environment: string,
+    isCloudDatabase: boolean,
+  ): string {
     if (!isCloudDatabase) {
       return 'disable';
     }
@@ -268,75 +285,93 @@ export class ConnectionManager {
  * Handles SSL setup for cloud providers
  */
 export class SSLConfigManager {
-    /**
-     * Check if connection string indicates a cloud provider
-     * @param {string} connectionString - Database connection string
-     * @returns {boolean} - True if cloud provider detected
-     */
-    static isCloudProvider(connectionString: string): boolean {
-        return CLOUD_PROVIDERS.some(provider => 
-            connectionString.includes(provider)
-        ) || connectionString.includes('sslmode=require');
+  /**
+   * Check if connection string indicates a cloud provider
+   * @param {string} connectionString - Database connection string
+   * @returns {boolean} - True if cloud provider detected
+   */
+  static isCloudProvider(connectionString: string): boolean {
+    return (
+      CLOUD_PROVIDERS.some((provider) => connectionString.includes(provider)) ||
+      connectionString.includes('sslmode=require')
+    );
+  }
+
+  /**
+   * Get SSL configuration for cloud providers
+   * @param {string} connectionString - Database connection string
+   * @returns {Object|boolean} - SSL configuration or false
+   */
+  static getSSLConfig(connectionString: string): SSLConfig | false {
+    // Check if we should use SSL at all
+    const isCloudProvider = this.isCloudProvider(connectionString);
+    const isTestEnv =
+      process.env.NODE_ENV === 'test' ||
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0';
+    const hasSSLMode =
+      connectionString.includes('sslmode=require') ||
+      connectionString.includes('ssl=true');
+
+    // Debug logging - always show for connection issues
+    console.error(`🔍 SSL Config Debug:`);
+    console.error(
+      `   - Connection: ${connectionString.replace(/:[^:@]*@/, ':***@')}`,
+    );
+    console.error(`   - Is Cloud Provider: ${isCloudProvider}`);
+    console.error(`   - Has SSL Mode: ${hasSSLMode}`);
+    console.error(`   - Is Test Env: ${isTestEnv}`);
+    console.error(
+      `   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`,
+    );
+
+    // For cloud providers or any SSL requirement, handle SSL configuration
+    if (isCloudProvider || hasSSLMode) {
+      // For cloud providers with self-signed certificates, set the environment variable
+      if (isCloudProvider && process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0') {
+        console.error(
+          `   - Setting NODE_TLS_REJECT_UNAUTHORIZED=0 for cloud provider`,
+        );
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+      }
+
+      // Use the simplest SSL configuration that works with pg
+      const config: SSLConfig = {
+        rejectUnauthorized: false,
+      };
+
+      console.error(`   - SSL Config Generated: rejectUnauthorized=false`);
+
+      return config;
     }
 
-    /**
-     * Get SSL configuration for cloud providers
-     * @param {string} connectionString - Database connection string
-     * @returns {Object|boolean} - SSL configuration or false
-     */
-    static getSSLConfig(connectionString: string): SSLConfig | false {
-        // Check if we should use SSL at all
-        const isCloudProvider = this.isCloudProvider(connectionString);
-        const isTestEnv = process.env.NODE_ENV === 'test' || process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0';
-        const hasSSLMode = connectionString.includes('sslmode=require') || connectionString.includes('ssl=true');
-        
-        // Debug logging - always show for connection issues
-        console.error(`🔍 SSL Config Debug:`);
-        console.error(`   - Connection: ${connectionString.replace(/:[^:@]*@/, ':***@')}`);
-        console.error(`   - Is Cloud Provider: ${isCloudProvider}`);
-        console.error(`   - Has SSL Mode: ${hasSSLMode}`);
-        console.error(`   - Is Test Env: ${isTestEnv}`);
-        console.error(`   - NODE_TLS_REJECT_UNAUTHORIZED: ${process.env.NODE_TLS_REJECT_UNAUTHORIZED}`);
-        
-        // For cloud providers or any SSL requirement, handle SSL configuration
-        if (isCloudProvider || hasSSLMode) {
-            // For cloud providers with self-signed certificates, set the environment variable
-            if (isCloudProvider && process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0') {
-                console.error(`   - Setting NODE_TLS_REJECT_UNAUTHORIZED=0 for cloud provider`);
-                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-            }
-            
-            // Use the simplest SSL configuration that works with pg
-            const config: SSLConfig = {
-                rejectUnauthorized: false
-            };
-            
-            console.error(`   - SSL Config Generated: rejectUnauthorized=false`);
-            
-            return config;
-        }
+    // No SSL for local databases without explicit SSL requirements
+    console.error(`   - SSL Config: false (no SSL)`);
+    return false;
+  }
 
-        // No SSL for local databases without explicit SSL requirements
-        console.error(`   - SSL Config: false (no SSL)`);
-        return false;
+  /**
+   * Log SSL configuration status
+   * @param {string} databaseType - Type of database
+   * @param {Object|boolean} sslConfig - SSL configuration
+   */
+  static logSSLStatus(
+    databaseType: DatabaseType,
+    sslConfig: SSLConfig | boolean,
+  ): void {
+    if (sslConfig) {
+      if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
+        console.error(
+          `⚠️  ${databaseType.toUpperCase()} SSL verification disabled via NODE_TLS_REJECT_UNAUTHORIZED`,
+        );
+      } else {
+        console.error(
+          `🔒 ${databaseType.toUpperCase()} SSL enabled with relaxed certificate verification for cloud providers`,
+        );
+      }
+    } else {
+      console.error(`🔓 ${databaseType.toUpperCase()} SSL disabled`);
     }
-
-    /**
-     * Log SSL configuration status
-     * @param {string} databaseType - Type of database
-     * @param {Object|boolean} sslConfig - SSL configuration
-     */
-    static logSSLStatus(databaseType: DatabaseType, sslConfig: SSLConfig | boolean): void {
-        if (sslConfig) {
-            if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
-                console.error(`⚠️  ${databaseType.toUpperCase()} SSL verification disabled via NODE_TLS_REJECT_UNAUTHORIZED`);
-            } else {
-                console.error(`🔒 ${databaseType.toUpperCase()} SSL enabled with relaxed certificate verification for cloud providers`);
-            }
-        } else {
-            console.error(`🔓 ${databaseType.toUpperCase()} SSL disabled`);
-        }
-    }
+  }
 }
 
 /**
@@ -344,78 +379,88 @@ export class SSLConfigManager {
  * Centralized error handling for database connections
  */
 export class ConnectionErrorHandler {
-    /**
-     * Handle PostgreSQL connection errors
-     * @param {Error} error - Connection error
-     */
-    static handlePostgreSQLError(error: Error): void {
-        if (error.message.includes('self-signed certificate')) {
-            console.error('💡 SSL certificate issue - this should be automatically handled for cloud providers');
-            console.error('💡 If using a local database, try setting NODE_TLS_REJECT_UNAUTHORIZED=0');
-        }
-        if (error.message.includes('no pg_hba.conf entry')) {
-            console.error('💡 Check if SSL is required for your database connection');
-        }
-        if (error.message.includes('timeout')) {
-            console.error('💡 Check your network connection and database availability');
-        }
+  /**
+   * Handle PostgreSQL connection errors
+   * @param {Error} error - Connection error
+   */
+  static handlePostgreSQLError(error: Error): void {
+    if (error.message.includes('self-signed certificate')) {
+      console.error(
+        '💡 SSL certificate issue - this should be automatically handled for cloud providers',
+      );
+      console.error(
+        '💡 If using a local database, try setting NODE_TLS_REJECT_UNAUTHORIZED=0',
+      );
     }
+    if (error.message.includes('no pg_hba.conf entry')) {
+      console.error('💡 Check if SSL is required for your database connection');
+    }
+    if (error.message.includes('timeout')) {
+      console.error(
+        '💡 Check your network connection and database availability',
+      );
+    }
+  }
 
-    /**
-     * Handle MySQL connection errors
-     * @param {Error} error - Connection error
-     */
-    static handleMySQLError(error: any): void {
-        if (error.code === 'ECONNREFUSED') {
-            console.error('💡 MySQL server is not running or not accessible');
-        }
-        if (error.code === 'ER_ACCESS_DENIED_ERROR') {
-            console.error('💡 Check your MySQL username and password');
-        }
-        if (error.code === 'ER_BAD_DB_ERROR') {
-            console.error('💡 The specified database does not exist');
-        }
-        if (error.message && error.message.includes('timeout')) {
-            console.error('💡 Check your network connection and database availability');
-        }
+  /**
+   * Handle MySQL connection errors
+   * @param {Error} error - Connection error
+   */
+  static handleMySQLError(error: any): void {
+    if (error.code === 'ECONNREFUSED') {
+      console.error('💡 MySQL server is not running or not accessible');
     }
+    if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+      console.error('💡 Check your MySQL username and password');
+    }
+    if (error.code === 'ER_BAD_DB_ERROR') {
+      console.error('💡 The specified database does not exist');
+    }
+    if (error.message && error.message.includes('timeout')) {
+      console.error(
+        '💡 Check your network connection and database availability',
+      );
+    }
+  }
 
-    /**
-     * Handle SQLite connection errors
-     * @param {Error} error - Connection error
-     */
-    static handleSQLiteError(error: any): void {
-        if (error.code === 'SQLITE_CANTOPEN') {
-            console.error('💡 Cannot open SQLite database file - check file path and permissions');
-        }
-        if (error.code === 'ENOENT') {
-            console.error('💡 SQLite database file not found - check the file path');
-        }
-        if (error.message && error.message.includes('permission')) {
-            console.error('💡 Permission denied - check file permissions');
-        }
+  /**
+   * Handle SQLite connection errors
+   * @param {Error} error - Connection error
+   */
+  static handleSQLiteError(error: any): void {
+    if (error.code === 'SQLITE_CANTOPEN') {
+      console.error(
+        '💡 Cannot open SQLite database file - check file path and permissions',
+      );
     }
+    if (error.code === 'ENOENT') {
+      console.error('💡 SQLite database file not found - check the file path');
+    }
+    if (error.message && error.message.includes('permission')) {
+      console.error('💡 Permission denied - check file permissions');
+    }
+  }
 
-    /**
-     * Handle connection error based on database type
-     * @param {string} databaseType - Type of database
-     * @param {Error} error - Connection error
-     */
-    static handleError(databaseType: DatabaseType, error: Error): void {
-        switch (databaseType) {
-            case 'postgresql':
-                this.handlePostgreSQLError(error);
-                break;
-            case 'mysql':
-                this.handleMySQLError(error);
-                break;
-            case 'sqlite':
-                this.handleSQLiteError(error);
-                break;
-            default:
-                console.error('💡 Check your database connection and credentials');
-        }
+  /**
+   * Handle connection error based on database type
+   * @param {string} databaseType - Type of database
+   * @param {Error} error - Connection error
+   */
+  static handleError(databaseType: DatabaseType, error: Error): void {
+    switch (databaseType) {
+      case 'postgresql':
+        this.handlePostgreSQLError(error);
+        break;
+      case 'mysql':
+        this.handleMySQLError(error);
+        break;
+      case 'sqlite':
+        this.handleSQLiteError(error);
+        break;
+      default:
+        console.error('💡 Check your database connection and credentials');
     }
+  }
 }
 
 /**
@@ -423,41 +468,46 @@ export class ConnectionErrorHandler {
  * Centralized logging for database connections
  */
 export class ConnectionLogger {
-    /**
-     * Log successful connection
-     * @param {string} databaseType - Type of database
-     * @param {Object} connectionInfo - Connection information
-     */
-    static logSuccess(databaseType: DatabaseType, connectionInfo: DatabaseConnectionInfo): void {
-        console.error(`✅ Connected to ${databaseType.toUpperCase()} database`);
-        
-        if (connectionInfo.serverTime) {
-            console.error(`📅 Server time: ${connectionInfo.serverTime}`);
-        }
-        
-        if (connectionInfo.version) {
-            console.error(`🔧 Version: ${connectionInfo.version}`);
-        }
+  /**
+   * Log successful connection
+   * @param {string} databaseType - Type of database
+   * @param {Object} connectionInfo - Connection information
+   */
+  static logSuccess(
+    databaseType: DatabaseType,
+    connectionInfo: DatabaseConnectionInfo,
+  ): void {
+    console.error(`✅ Connected to ${databaseType.toUpperCase()} database`);
 
-        if (connectionInfo.filePath) {
-            console.error(`📁 Database file: ${connectionInfo.filePath}`);
-        }
+    if (connectionInfo.serverTime) {
+      console.error(`📅 Server time: ${connectionInfo.serverTime}`);
     }
 
-    /**
-     * Log connection attempt
-     * @param {string} databaseType - Type of database
-     */
-    static logAttempt(databaseType: DatabaseType): void {
-        console.error(`🔄 Connecting to ${databaseType.toUpperCase()} database...`);
+    if (connectionInfo.version) {
+      console.error(`🔧 Version: ${connectionInfo.version}`);
     }
 
-    /**
-     * Log connection failure
-     * @param {string} databaseType - Type of database
-     * @param {string} message - Error message
-     */
-    static logFailure(databaseType: DatabaseType, message: string): void {
-        console.error(`❌ ${databaseType.toUpperCase()} connection failed: ${message}`);
+    if (connectionInfo.filePath) {
+      console.error(`📁 Database file: ${connectionInfo.filePath}`);
     }
-} 
+  }
+
+  /**
+   * Log connection attempt
+   * @param {string} databaseType - Type of database
+   */
+  static logAttempt(databaseType: DatabaseType): void {
+    console.error(`🔄 Connecting to ${databaseType.toUpperCase()} database...`);
+  }
+
+  /**
+   * Log connection failure
+   * @param {string} databaseType - Type of database
+   * @param {string} message - Error message
+   */
+  static logFailure(databaseType: DatabaseType, message: string): void {
+    console.error(
+      `❌ ${databaseType.toUpperCase()} connection failed: ${message}`,
+    );
+  }
+}
