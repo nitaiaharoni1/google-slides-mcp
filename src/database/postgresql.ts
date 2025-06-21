@@ -225,7 +225,7 @@ class PostgreSQLDatabase extends DatabaseInterface {
   }
 
   private _validatePostgreSQLQuery(query: string): string {
-    const trimmedQuery = query.trim().toLowerCase();
+    const trimmedQuery = this._stripSQLComments(query.trim()).toLowerCase();
 
     // Allow read operations
     const allowedReadStarts = [

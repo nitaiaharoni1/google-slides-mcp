@@ -67,13 +67,33 @@ abstract class DatabaseInterface {
   abstract getSchemaQueries(): SchemaQueries;
 
   /**
+   * Strip SQL comments from query
+   * @param query - SQL query
+   * @returns Query with comments removed
+   */
+  protected _stripSQLComments(query: string): string {
+    let result = query;
+    
+    // Remove block comments (/* ... */)
+    result = result.replace(/\/\*[\s\S]*?\*\//g, '');
+    
+    // Remove line comments (-- ...)
+    result = result.replace(/--.*$/gm, '');
+    
+    // Clean up extra whitespace and return first non-empty line
+    const lines = result.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    return lines.length > 0 ? lines[0] : '';
+  }
+
+  /**
    * Validate and transform query for this database type
    * @param query - SQL query
    * @returns Validated/transformed query
    */
   validateQuery(query: string): string {
     // Default implementation - override for database-specific validation
-    const trimmedQuery = query.trim().toLowerCase();
+    const trimmedQuery = this._stripSQLComments(query.trim()).toLowerCase();
 
     // Allow read operations
     const allowedReadStarts = ['select', 'with', 'show', 'describe', 'explain'];

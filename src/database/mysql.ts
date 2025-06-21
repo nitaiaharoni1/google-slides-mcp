@@ -228,7 +228,7 @@ class MySQLDatabase extends DatabaseInterface {
   }
 
   private _validateMySQLQuery(query: string): string {
-    const trimmedQuery = query.trim().toLowerCase();
+    const trimmedQuery = this._stripSQLComments(query.trim()).toLowerCase();
 
     // Allow read operations
     const allowedReadStarts = ['select', 'with', 'show', 'describe', 'explain'];

@@ -85,14 +85,14 @@ export const queryTools: MCPToolDefinition[] = [
   {
     name: 'query_database',
     description:
-      'Execute a SQL query on the database. Supports PostgreSQL, MySQL, and SQLite. Allows SELECT, INSERT, UPDATE, ALTER, and CREATE operations. Destructive operations (DROP, DELETE, TRUNCATE) are blocked for safety.',
+      'Execute a SQL query on the database. Supports PostgreSQL, MySQL, and SQLite. Allows SELECT, INSERT, UPDATE, ALTER, and CREATE operations. Destructive operations (DROP, DELETE, TRUNCATE) are blocked for safety. IMPORTANT: Do not include SQL comments (-- or /* */) in queries - provide clean SQL statements only.',
     inputSchema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
           description:
-            'SQL query to execute (SELECT, INSERT, UPDATE, ALTER, CREATE statements allowed)',
+            'SQL query to execute (SELECT, INSERT, UPDATE, ALTER, CREATE statements allowed). Do not include SQL comments - provide clean SQL only.',
         },
       },
       required: ['query'],
@@ -102,14 +102,14 @@ export const queryTools: MCPToolDefinition[] = [
   {
     name: 'explain_query',
     description:
-      'Get the execution plan for a SQL query without executing it. Supports PostgreSQL, MySQL, and SQLite.',
+      'Get the execution plan for a SQL query without executing it. Supports PostgreSQL, MySQL, and SQLite. IMPORTANT: Do not include SQL comments (-- or /* */) in queries - provide clean SQL statements only.',
     inputSchema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
           description:
-            'SQL query to explain (SELECT, INSERT, UPDATE, ALTER, CREATE statements allowed)',
+            'SQL query to explain (SELECT, INSERT, UPDATE, ALTER, CREATE statements allowed). Do not include SQL comments - provide clean SQL only.',
         },
         analyze: {
           type: 'boolean',
