@@ -72,7 +72,7 @@
   ],
   "preferGlobal": true,
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@modelcontextprotocol/sdk": "^1.13.0",
     "dotenv": "^16.5.0",
     "mysql2": "^3.14.1",
     "pg": "^8.16.0",
