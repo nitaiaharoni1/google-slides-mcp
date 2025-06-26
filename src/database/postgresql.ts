@@ -43,15 +43,41 @@ class PostgreSQLDatabase extends DatabaseInterface {
         console.error(`   - Config:`, JSON.stringify(config, null, 2));
       }
 
+      console.error(`⏱️  Attempting connection with ${QUERY_LIMITS.CONNECTION_TIMEOUT/1000}s timeout...`);
+      const startTime = Date.now();
+
       this.client = new Client(config);
       await this.client.connect();
+
+      const connectionTime = Date.now() - startTime;
+      console.error(`⚡ Connection established in ${connectionTime}ms`);
 
       const connectionInfo = await this._getConnectionInfo();
       ConnectionLogger.logSuccess(this.type, connectionInfo);
 
       this.isConnected = true;
     } catch (error) {
-      ConnectionLogger.logFailure(this.type, (error as Error).message);
+      const errorMessage = (error as Error).message;
+      console.error(`💥 Connection failed after ${(Date.now() - Date.now())/1000}s`);
+      console.error(`📋 Error details: ${errorMessage}`);
+      
+      // Enhanced error diagnosis
+      if (errorMessage.includes('timeout')) {
+        console.error(`🔍 Timeout Analysis:`);
+        console.error(`   - This usually indicates network connectivity issues`);
+        console.error(`   - Check if the database server is running`);
+        console.error(`   - Verify firewall/security group settings`);
+        console.error(`   - Confirm the database accepts connections from your IP`);
+      }
+      
+      if (errorMessage.includes('ECONNREFUSED')) {
+        console.error(`🔍 Connection Refused:`);
+        console.error(`   - Database server may be down`);
+        console.error(`   - Wrong host/port combination`);
+        console.error(`   - Firewall blocking the connection`);
+      }
+
+      ConnectionLogger.logFailure(this.type, errorMessage);
       ConnectionErrorHandler.handleError(this.type, error as Error);
       throw error;
     }
@@ -195,6 +221,12 @@ class PostgreSQLDatabase extends DatabaseInterface {
     } else {
       SSLConfigManager.logSSLStatus(this.type, false);
     }
+
+    // Add additional connection debugging
+    console.error(`🔍 PostgreSQL Connection Config Debug:`);
+    console.error(`   - Timeout: ${config.connectionTimeoutMillis}ms`);
+    console.error(`   - SSL: ${config.ssl ? 'enabled' : 'disabled'}`);
+    console.error(`   - Connection attempt will start now...`);
 
     return config;
   }

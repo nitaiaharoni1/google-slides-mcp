@@ -7,6 +7,10 @@
   "bin": {
     "database-mcp": "dist/server.js"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "node build.js",
     "build:dev": "tsc",
@@ -26,17 +30,20 @@
     "clean": "rimraf dist coverage",
     "prepare": "husky",
     "prepublishOnly": "npm run clean && npm run build && npm run build:types && npm run test:unit",
-    "postinstall": "echo '\n🎉 Database MCP Server installed successfully!\n\n📖 Quick Start:\n   1. Set DATABASE_URL: export DATABASE_URL=\"your_connection_string\"\n   2. Run setup: database-mcp --setup\n   3. Restart Claude Desktop\n\n💡 For help: database-mcp --help\n📖 Documentation: https://github.com/nitaiaharoni1/database-mcp#readme\n'",
+    "postinstall": "echo '\n🎉 Database MCP Server installed successfully!\n\n📖 Quick Start with NPX (Recommended):\n   npx database-mcp init \"your_connection_string\"\n   npx database-mcp status\n   \n📖 Documentation: https://github.com/nitaiaharoni1/database-mcp#readme\n💡 For help: npx database-mcp --help\n'",
     "release": "npm run build && node dist/release.js",
     "release:patch": "npm run build && node dist/release.js patch --yes",
     "release:minor": "npm run build && node dist/release.js minor --yes",
     "release:major": "npm run build && node dist/release.js major --yes",
     "release:dry": "npm run build && node dist/release.js --dry-run",
-    "version:check": "echo \"Current version: $(node -p 'require(\"./package.json\").version')\""
+    "version:check": "echo \"Current version: $(node -p 'require(\"./package.json\").version')\"",
+    "publish:check": "npm run prepublishOnly && npm pack --dry-run",
+    "publish:public": "npm publish --access public"
   },
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "npx",
     "postgresql",
     "postgres",
     "mysql",
@@ -50,12 +57,12 @@
     "introspection",
     "analytics",
     "database-tools",
-    "typescript",
-    "jest",
-    "testing"
+    "cli",
+    "open-source",
+    "typescript"
   ],
   "author": "Nitai Aharoni <nitaiaharoni1@gmail.com>",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nitaiaharoni1/database-mcp.git"

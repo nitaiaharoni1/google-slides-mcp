@@ -9,13 +9,24 @@ A Model Context Protocol (MCP) server that provides AI assistants with direct ac
 
 ## 🚀 Quick Install
 
+### NPX (Recommended - No Installation Required)
 ```bash
+# Run directly with npx (no installation needed)
+npx database-mcp init "postgresql://user:pass@host:port/db"
+npx database-mcp status
+```
+
+### Global Installation
+```bash
+# Install globally for repeated use
 npm install -g database-mcp
 database-mcp init "postgresql://user:pass@host:port/db"
 database-mcp status
 ```
 
 Restart Claude Desktop after setup.
+
+**✨ New:** Use with NPX - no installation required! Just run `npx database-mcp` directly.
 
 **New in v1.2.4:** Use the simple `database-mcp init` command for streamlined setup!
 
@@ -77,16 +88,21 @@ Restart Claude Desktop after setup.
 - Claude Desktop or any MCP-compatible AI client
 - Database access (PostgreSQL, MySQL, or SQLite)
 
-### Quick Setup
+### Quick Setup (NPX - Recommended)
 
-1. **Install and configure automatically:**
+1. **Run directly with NPX (no installation needed):**
    ```bash
    npx database-mcp init "your-database-connection-string"
    ```
 
-2. **Restart Claude Desktop** and you're ready!
+2. **Check status:**
+   ```bash
+   npx database-mcp status
+   ```
 
-### Alternative Methods
+3. **Restart Claude Desktop** and you're ready!
+
+### Alternative Installation Methods
 
 **Install globally:**
 ```bash
@@ -94,7 +110,16 @@ npm install -g database-mcp
 database-mcp init "your-database-connection-string"
 ```
 
-**Manual configuration:** Use `database-mcp --find-config` to locate your Claude Desktop config file and add the server manually.
+**Use from source:**
+```bash
+git clone https://github.com/nitaiaharoni1/database-mcp.git
+cd database-mcp
+npm install
+npm run build
+npm run configure
+```
+
+**Manual configuration:** Use `npx database-mcp --find-config` to locate your Claude Desktop config file and add the server manually.
 
 ## 🔗 Connection String Examples
 

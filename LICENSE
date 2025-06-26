@@ -1,32 +1,21 @@
+MIT License
+
 Copyright (c) 2024 Nitai Aharoni
 
-All Rights Reserved
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This software and associated documentation files (the "Software") are the exclusive property of Nitai Aharoni. All rights are reserved.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-TERMS AND CONDITIONS
-
-1. PERMITTED USE
-   - Personal use for non-commercial purposes only
-   - Educational use for learning and research
-   - Evaluation and testing purposes
-
-2. PROHIBITED USE
-   - Commercial use of any kind is strictly prohibited
-   - Redistribution or resale of the Software
-   - Use in commercial products or services
-   - Use to generate revenue or profit
-
-3. RESTRICTIONS
-   - You may not copy, modify, merge, publish, distribute, sublicense, or sell copies of the Software
-   - You may not use the Software for any commercial purpose
-   - You may not reverse engineer, decompile, or disassemble the Software
-   - You may not remove or alter any copyright notices
-
-4. DISCLAIMER
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL NITAI AHARONI BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-5. TERMINATION
-   This license is effective until terminated. Your rights under this license will terminate automatically without notice if you fail to comply with any term(s) of this license.
-
-For commercial licensing inquiries, please contact: nitaiaharoni1@gmail.com
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

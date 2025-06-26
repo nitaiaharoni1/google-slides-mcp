@@ -66,6 +66,9 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
+    console.error('🔌 Initializing database connection...');
+    console.error(`🎯 Target: ${connectionString.replace(/:[^:@]*@/, ':***@')}`);
+    
     await initializeDatabase(connectionString);
     console.error('✅ Database connected successfully');
 
@@ -73,7 +76,26 @@ async function main(): Promise<void> {
     await server.connect(transport);
     console.error('🚀 Claude Multi-Database MCP Server started');
   } catch (error) {
-    console.error('❌ Server startup failed:', (error as Error).message);
+    const errorMsg = (error as Error).message;
+    console.error('❌ Server startup failed:', errorMsg);
+    
+    // Provide specific guidance based on error type
+    if (errorMsg.includes('timeout')) {
+      console.error('🔍 Troubleshooting suggestions:');
+      console.error('   1. Check if your database server is running');
+      console.error('   2. Verify network connectivity to the database host');
+      console.error('   3. Confirm firewall/security group settings allow your IP');
+      console.error('   4. Check if the database requires specific IP whitelisting');
+    }
+    
+    if (errorMsg.includes('authentication') || errorMsg.includes('password')) {
+      console.error('🔍 Troubleshooting suggestions:');
+      console.error('   1. Verify your database username and password');
+      console.error('   2. Check if the user has sufficient permissions');
+      console.error('   3. Confirm the database name is correct');
+    }
+    
+    console.error('💡 Try running with a local database first to test the MCP server functionality');
     process.exit(1);
   }
 }

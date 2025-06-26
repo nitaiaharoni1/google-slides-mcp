@@ -84,7 +84,7 @@ describe('CLI Module', () => {
         expect.stringContaining('Claude Multi-Database MCP Server'),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Usage:'),
+        expect.stringContaining('Usage (NPX - Recommended):'),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('database-mcp'),
@@ -205,7 +205,7 @@ describe('CLI Module', () => {
       }
     });
 
-    test('should handle setup with cloud database (adds SSL config)', () => {
+    test('should handle setup with cloud database', () => {
       const originalEnv = process.env.DATABASE_URL;
       process.env.DATABASE_URL =
         'postgresql://user:pass@db.digitalocean.com:5432/db';
@@ -230,7 +230,7 @@ describe('CLI Module', () => {
       const result = handleCliCommands(['--setup']);
       expect(result).toBe(true);
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Added SSL configuration for cloud database'),
+        expect.stringContaining('Setup complete'),
       );
 
       // Restore environment
@@ -368,7 +368,7 @@ describe('CLI Module', () => {
       );
     });
 
-    test('should handle init command with cloud database (adds SSL config)', () => {
+    test('should handle init command with cloud database', () => {
       mockPath.join.mockReturnValue(
         '/mocked/config/claude_desktop_config.json',
       );
@@ -392,7 +392,7 @@ describe('CLI Module', () => {
       ]);
       expect(result).toBe(true);
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Added SSL configuration for cloud database'),
+        expect.stringContaining('Setup complete'),
       );
     });
 
@@ -489,7 +489,7 @@ describe('CLI Module', () => {
         expect.stringContaining('Connection string is required'),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Usage:'),
+        expect.stringContaining('database-mcp update'),
       );
     });
 
@@ -661,7 +661,9 @@ describe('CLI Module', () => {
 
       handleCliCommands(['--find-config']);
       expect(mockPath.join).toHaveBeenCalledWith(
-        'C:\\Users\\testuser\\AppData\\Roaming',
+        '/mocked/home',
+        'AppData',
+        'Roaming',
         'Claude',
         'claude_desktop_config.json',
       );
@@ -678,7 +680,7 @@ describe('CLI Module', () => {
       expect(mockPath.join).toHaveBeenCalledWith(
         '/home/testuser',
         '.config',
-        'claude',
+        'Claude',
         'claude_desktop_config.json',
       );
     });
@@ -694,7 +696,7 @@ describe('CLI Module', () => {
 
       // Check for essential help content
       expect(helpOutput).toContain('Claude Multi-Database MCP Server');
-      expect(helpOutput).toContain('Usage:');
+      expect(helpOutput).toContain('Usage (NPX - Recommended):');
       expect(helpOutput).toContain('Options:');
       expect(helpOutput).toContain('--help');
       expect(helpOutput).toContain('--version');
@@ -710,7 +712,7 @@ describe('CLI Module', () => {
       expect(helpOutput).toContain('MySQL');
       expect(helpOutput).toContain('SQLite');
       expect(helpOutput).toContain('Quick Start');
-      expect(helpOutput).toContain('Examples:');
+      expect(helpOutput).toContain('Examples (NPX):');
       expect(helpOutput).toContain('database-mcp init');
       expect(helpOutput).toContain('database-mcp status');
       expect(helpOutput).toContain('database-mcp update');

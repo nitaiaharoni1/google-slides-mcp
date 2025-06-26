@@ -11,6 +11,13 @@ import {
   validateConnectionString,
   getConnectionStringExamples,
 } from './database';
+import {
+  getClaudeConfigPath,
+  mergeClaudeConfig,
+  readClaudeConfig,
+  generateNpxConfig,
+  generateGlobalConfig,
+} from './config/claude';
 
 // Type declaration for build-time injected constants
 declare const __PACKAGE_VERSION__: string;
@@ -73,7 +80,13 @@ function showHelp(): void {
   console.log(`
 Claude Multi-Database MCP Server
 
-Usage:
+Usage (NPX - Recommended):
+  npx database-mcp [options]
+  npx database-mcp init [connection_string]
+  npx database-mcp status
+  npx database-mcp update <connection_string>
+
+Usage (Global Installation):
   database-mcp [options]
   database-mcp init [connection_string]
   database-mcp status
@@ -89,14 +102,17 @@ Options:
   --configure       Show configuration instructions (DEPRECATED - use init)
   --setup           Interactive setup (DEPRECATED - use init)
 
-Examples:
-  database-mcp init
+Examples (NPX):
+  npx database-mcp init "postgresql://user:pass@host:port/db"
+  npx database-mcp init "mysql://user:pass@localhost:3306/mydb"
+  npx database-mcp init "./database.sqlite"
+  npx database-mcp init "snowflake://user:pass@account.snowflakecomputing.com/db"
+  npx database-mcp status
+  npx database-mcp update "postgresql://user:pass@newhost:port/db"
+
+Examples (Global):
   database-mcp init "postgresql://user:pass@host:port/db"
-  database-mcp init "mysql://user:pass@localhost:3306/mydb"
-  database-mcp init "./database.sqlite"
-  database-mcp init "snowflake://user:pass@account.snowflakecomputing.com/db"
   database-mcp status
-  database-mcp update "postgresql://user:pass@newhost:port/db"
 
 Environment Variables:
   DATABASE_URL      Database connection string (used if not provided as argument)
@@ -107,15 +123,20 @@ Supported Databases:
   - SQLite: /path/to/database.db
   - Snowflake: snowflake://user:pass@account.snowflakecomputing.com/database
 
-Quick Start:
+Quick Start (NPX - No Installation Required):
+  1. Run: npx database-mcp init "your_connection_string"
+  2. Check: npx database-mcp status
+  3. Restart Claude Desktop
+
+Quick Start (Global Installation):
   1. Install: npm install -g database-mcp
   2. Setup: database-mcp init "your_connection_string"
   3. Check status: database-mcp status
   4. Restart Claude Desktop
 
-Alternative:
+Alternative Setup:
   export DATABASE_URL="your_connection_string"
-  database-mcp init
+  npx database-mcp init
 `);
 }
 
@@ -131,17 +152,22 @@ function showConfiguration(): void {
   console.log(`
 Configuration Instructions:
 
-1. Set DATABASE_URL environment variable:
-   export DATABASE_URL="your_connection_string"
+Choose one of the following methods:
 
-2. Add to Claude Desktop configuration file:
-`);
+1. NPX Usage (Recommended - No Installation Required):
+   {
+     "mcpServers": {
+       "database-mcp": {
+         "command": "npx",
+         "args": ["database-mcp"],
+         "env": {
+           "DATABASE_URL": "your_connection_string"
+         }
+       }
+     }
+   }
 
-  const configPath = getClaudeConfigPath();
-  console.log(`   Location: ${configPath}`);
-
-  console.log(`
-3. Configuration example:
+2. Global Installation:
    {
      "mcpServers": {
        "database-mcp": {
@@ -153,7 +179,9 @@ Configuration Instructions:
      }
    }
 
-4. Restart Claude Desktop
+3. Manual Setup:
+   - Config location: ${getClaudeConfigPath()}
+   - Restart Claude Desktop after configuration
 
 Connection String Examples:`);
 
@@ -198,31 +226,6 @@ function interactiveSetup(connectionString?: string): void {
   const configPath = getClaudeConfigPath();
   console.log(`Config file: ${configPath}`);
 
-  // Ensure directory exists
-  const configDir = path.dirname(configPath);
-  if (!fs.existsSync(configDir)) {
-    console.log('📁 Creating Claude config directory...');
-    fs.mkdirSync(configDir, { recursive: true });
-  }
-
-  let config: any = {};
-
-  // Read existing config if it exists
-  if (fs.existsSync(configPath)) {
-    try {
-      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      console.log('📖 Found existing configuration');
-    } catch (error) {
-      console.log('⚠️  Existing config file is invalid, creating new one');
-      config = {};
-    }
-  }
-
-  // Ensure mcpServers exists
-  if (!config.mcpServers) {
-    config.mcpServers = {};
-  }
-
   // Check if DATABASE_URL is provided via argument or environment
   const databaseUrl = connectionString || process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -231,11 +234,18 @@ function interactiveSetup(connectionString?: string): void {
 
 Provide it as an argument:
   database-mcp init "postgresql://user:pass@host:port/db"
+  npx database-mcp init "postgresql://user:pass@host:port/db"
 
 Or set as environment variable:
   export DATABASE_URL="your_connection_string"
   database-mcp init
 `);
+    console.log('\nConnection string examples:');
+    const examples = getConnectionStringExamples();
+    Object.entries(examples).forEach(([type, urls]) => {
+      console.log(`\n${type.toUpperCase()}:`);
+      (urls as string[]).slice(0, 1).forEach((url: string) => console.log(`  ${url}`));
+    });
     return;
   }
 
@@ -249,46 +259,42 @@ Or set as environment variable:
     return;
   }
 
-  // Configure the MCP server
-  config.mcpServers['database-mcp'] = {
-    command: 'database-mcp',
-    env: {
-      DATABASE_URL: databaseUrl,
-    },
-  };
-
-  // Add SSL configuration for cloud databases if needed
-  if (
-    databaseUrl.includes('digitalocean.com') ||
-    databaseUrl.includes('amazonaws.com') ||
-    databaseUrl.includes('azure.com') ||
-    databaseUrl.includes('googleusercontent.com')
-  ) {
-    config.mcpServers['database-mcp'].env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    console.log('🔒 Added SSL configuration for cloud database');
-  }
-
-  // Write the configuration
-  try {
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  // Use the new configuration system with NPX as default
+  const success = mergeClaudeConfig(databaseUrl, true);
+  
+  if (success) {
     console.log('✅ Configuration saved successfully!');
     console.log(`
 🎉 Setup complete!
 
+Configuration Method: NPX (Recommended)
+- Uses: npx database-mcp
+- No global installation required
+- Always runs latest version
+
+Configuration saved to: ${configPath}
+
 Next steps:
 1. Restart Claude Desktop
-2. Start a new conversation
+2. Start a new conversation  
 3. You should now have access to database tools
 
 The following tools will be available:
-- Query database
-- List tables and schemas  
+- Query database with natural language
+- List tables and schemas
 - Describe table structure
-- Analyze data
-- And more!
+- Analyze data distributions
+- Get foreign key relationships
+- And more database introspection tools!
+
+💡 Try asking Claude: "What tables are in my database?"
 `);
-  } catch (error) {
-    console.log(`❌ Failed to save configuration: ${(error as Error).message}`);
+  } else {
+    console.log('❌ Failed to save configuration');
+    console.log('\n📝 Manual Configuration:');
+    const manualConfig = generateNpxConfig(databaseUrl);
+    console.log(JSON.stringify(manualConfig, null, 2));
+    console.log(`\nSave this to: ${configPath}`);
   }
 }
 
@@ -458,30 +464,4 @@ To check the status: database-mcp status
   }
 }
 
-function getClaudeConfigPath(): string {
-  const platform = os.platform();
 
-  switch (platform) {
-    case 'darwin': // macOS
-      return path.join(
-        os.homedir(),
-        'Library',
-        'Application Support',
-        'Claude',
-        'claude_desktop_config.json',
-      );
-    case 'win32': // Windows
-      return path.join(
-        process.env.APPDATA || '',
-        'Claude',
-        'claude_desktop_config.json',
-      );
-    default: // Linux and others
-      return path.join(
-        os.homedir(),
-        '.config',
-        'claude',
-        'claude_desktop_config.json',
-      );
-  }
-}
