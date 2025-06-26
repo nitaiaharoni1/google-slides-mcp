@@ -9,6 +9,7 @@ import { analysisTools } from './analysis';
 import { discoveryTools } from './discovery';
 import { postgresCatalogTools } from './postgres-catalog';
 import { postgresAdvancedTools } from './postgres-advanced';
+import { csvExportTools } from './csv-export';
 import { MCPToolDefinition, MCPResult } from '../types/mcp';
 
 // Combine all tools
@@ -19,6 +20,7 @@ const allTools: MCPToolDefinition[] = [
   ...discoveryTools,
   ...postgresCatalogTools,
   ...postgresAdvancedTools,
+  ...csvExportTools,
 ];
 
 /**

@@ -63,6 +63,12 @@ export interface ExplainQueryArgs extends MCPToolArgs {
   analyze?: boolean;
 }
 
+export interface ExportToCsvArgs extends MCPToolArgs {
+  query: string;
+  filepath: string;
+  include_headers?: boolean;
+}
+
 export interface DescribeTableArgs extends MCPToolArgs {
   table_name: string;
 }
