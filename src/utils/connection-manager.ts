@@ -326,7 +326,14 @@ export class SSLConfigManager {
 
     // For cloud providers or any SSL requirement, handle SSL configuration
     if (isCloudProvider || hasSSLMode) {
-      // For cloud providers with self-signed certificates, set the environment variable
+      // Enhanced SSL configuration for cloud providers with comprehensive certificate handling
+      const config: SSLConfig = {
+        rejectUnauthorized: false,
+        checkServerIdentity: () => undefined, // Skip server identity checks for cloud providers
+        servername: undefined, // Don't specify servername to avoid SNI issues
+      };
+
+      // Set environment variable for broader Node.js SSL handling
       if (isCloudProvider && process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0') {
         console.error(
           `   - Setting NODE_TLS_REJECT_UNAUTHORIZED=0 for cloud provider`,
@@ -334,12 +341,9 @@ export class SSLConfigManager {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
       }
 
-      // Use the simplest SSL configuration that works with pg
-      const config: SSLConfig = {
-        rejectUnauthorized: false,
-      };
-
-      console.error(`   - SSL Config Generated: rejectUnauthorized=false`);
+      console.error(`   - SSL Config Generated: enhanced for cloud providers`);
+      console.error(`   - rejectUnauthorized: false`);
+      console.error(`   - checkServerIdentity: disabled`);
 
       return config;
     }

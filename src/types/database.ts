@@ -45,6 +45,7 @@ export interface SSLConfig {
   checkServerIdentity?: (servername: string, cert: any) => undefined;
   requestCert?: boolean;
   agent?: boolean;
+  servername?: string;
 }
 
 // Schema query interfaces
