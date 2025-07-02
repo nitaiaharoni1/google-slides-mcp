@@ -5,6 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import * as createCsvWriter from 'csv-writer';
 import { getDatabase, getDatabaseType } from '../database';
 import { formatSuccessResult, formatErrorResult } from '../utils/result-formatter';
@@ -17,6 +18,32 @@ export interface ExportToCsvArgs {
 }
 
 /**
+ * Get the desktop path for the current user
+ */
+function getDesktopPath(): string {
+  const homeDir = os.homedir();
+  return path.join(homeDir, 'Desktop');
+}
+
+/**
+ * Resolve the file path - if it's just a filename, save to desktop
+ */
+function resolveFilePath(filepath: string): string {
+  // If it's already an absolute path, use it as is
+  if (path.isAbsolute(filepath)) {
+    return filepath;
+  }
+  
+  // If it contains path separators, treat it as a relative path from current directory
+  if (filepath.includes('/') || filepath.includes('\\')) {
+    return path.resolve(filepath);
+  }
+  
+  // If it's just a filename, save to desktop
+  return path.join(getDesktopPath(), filepath);
+}
+
+/**
  * Execute a SQL query and export results to CSV file
  */
 const exportToCSV = async (args: ExportToCsvArgs) => {
@@ -26,6 +53,9 @@ const exportToCSV = async (args: ExportToCsvArgs) => {
   }
 
   const { query, filepath, include_headers = true } = args;
+  
+  // Resolve the file path (defaults to desktop if just a filename)
+  const resolvedFilePath = resolveFilePath(filepath);
 
   // Validate the query
   const validatedQuery = db.validateQuery(query);
@@ -50,7 +80,7 @@ const exportToCSV = async (args: ExportToCsvArgs) => {
       return formatSuccessResult(
         {
           message: 'Query executed successfully but returned no rows',
-          filepath,
+          filepath: resolvedFilePath,
           rowCount: 0,
           executionTimeMs: executionTime,
           databaseType: dbType,
@@ -60,7 +90,7 @@ const exportToCSV = async (args: ExportToCsvArgs) => {
     }
 
     // Ensure directory exists
-    const dir = path.dirname(filepath);
+    const dir = path.dirname(resolvedFilePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -70,7 +100,7 @@ const exportToCSV = async (args: ExportToCsvArgs) => {
     
     // Create CSV writer configuration
     const csvWriter = createCsvWriter.createObjectCsvWriter({
-      path: filepath,
+      path: resolvedFilePath,
       header: columns.map(col => ({ id: col, title: col })),
       append: false, // Always create a new file
     });
@@ -78,18 +108,18 @@ const exportToCSV = async (args: ExportToCsvArgs) => {
     // Write data to CSV
     await csvWriter.writeRecords(result.rows);
 
-    console.error(`📄 CSV file written successfully: ${filepath}`);
+    console.error(`📄 CSV file written successfully: ${resolvedFilePath}`);
 
     return formatSuccessResult(
       {
         message: 'Query results exported to CSV successfully',
-        filepath,
+        filepath: resolvedFilePath,
         rowCount: result.rowCount,
         columnCount: columns.length,
         columns,
         executionTimeMs: executionTime,
         databaseType: dbType,
-        fileSize: fs.statSync(filepath).size,
+        fileSize: fs.statSync(resolvedFilePath).size,
       },
       dbType!,
     );
@@ -100,8 +130,8 @@ const exportToCSV = async (args: ExportToCsvArgs) => {
     
     // Clean up partial file if it exists
     try {
-      if (fs.existsSync(filepath)) {
-        fs.unlinkSync(filepath);
+      if (fs.existsSync(resolvedFilePath)) {
+        fs.unlinkSync(resolvedFilePath);
       }
     } catch (cleanupError) {
       console.error(`⚠️ Failed to clean up partial file: ${cleanupError}`);
@@ -119,7 +149,7 @@ export const csvExportTools: MCPToolDefinition[] = [
   {
     name: 'export_to_csv',
     description:
-      'Execute a SQL query and export the results to a CSV file. Supports PostgreSQL, MySQL, and SQLite. Allows SELECT queries only for CSV export. The CSV file will include column headers by default and will be created with proper formatting.',
+      'Execute a SQL query and export the results to a CSV file. Supports PostgreSQL, MySQL, and SQLite. Allows SELECT queries only for CSV export. The CSV file will include column headers by default and will be created with proper formatting. If only a filename is provided, the file will be saved to the user\'s Desktop.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -131,7 +161,11 @@ export const csvExportTools: MCPToolDefinition[] = [
         filepath: {
           type: 'string',
           description:
-            'Full path where the CSV file should be created. Directory will be created if it doesn\'t exist. Example: "/path/to/output/results.csv"',
+            'Path where the CSV file should be created. Can be:\n' +
+            '- Full absolute path: "/path/to/output/results.csv"\n' +
+            '- Relative path: "folder/results.csv"\n' +
+            '- Just filename: "results.csv" (will be saved to Desktop)\n' +
+            'Directory will be created if it doesn\'t exist.',
         },
         include_headers: {
           type: 'boolean',
