@@ -1,0 +1,46 @@
+{
+  "createPresentation": {
+    "presentationId": "test-pres-123",
+    "title": "Test Presentation",
+    "revisionId": "rev-123",
+    "slides": [
+      {
+        "objectId": "slide-1",
+        "pageType": "SLIDE"
+      }
+    ]
+  },
+  "getPresentation": {
+    "presentationId": "test-pres-123",
+    "title": "Test Presentation",
+    "revisionId": "rev-123",
+    "locale": "en-US",
+    "pageSize": {
+      "width": { "magnitude": 9144000, "unit": "EMU" },
+      "height": { "magnitude": 5143500, "unit": "EMU" }
+    },
+    "slides": [
+      {
+        "objectId": "slide-1",
+        "pageType": "SLIDE"
+      },
+      {
+        "objectId": "slide-2",
+        "pageType": "SLIDE"
+      }
+    ],
+    "layouts": [
+      {
+        "objectId": "layout-1",
+        "pageType": "LAYOUT"
+      }
+    ],
+    "masters": [
+      {
+        "objectId": "master-1",
+        "pageType": "MASTER"
+      }
+    ]
+  }
+}
+

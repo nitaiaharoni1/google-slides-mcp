@@ -1,0 +1,108 @@
+{
+  "name": "mcp-google-slides",
+  "version": "1.0.2",
+  "description": "Model Context Protocol server for Google Slides - create, edit, format, and manage presentations with comprehensive slide manipulation tools",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "bin": {
+    "mcp-google-slides": "dist/server.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "build:dev": "tsc",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:compare": "node build.js --compare",
+    "start": "node dist/server.js",
+    "dev": "ts-node server.ts",
+    "dev:watch": "nodemon --exec ts-node server.ts",
+    "test": "jest",
+    "test:failed": "jest --onlyFailures",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest tests/integration",
+    "test:unit": "jest --testPathIgnorePatterns=integration",
+    "test:cli": "jest tests/cli.test.ts",
+    "lint": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "configure": "npm run build && node dist/server.js --configure",
+    "find-config": "npm run build && node dist/server.js --find-config",
+    "clean": "rimraf dist coverage",
+    "prepare": "husky",
+    "prepublishOnly": "npm run clean && npm run build && npm run build:types",
+    "postinstall": "echo '\n🎉 Google Slides MCP Server installed successfully!\n\n📖 Quick Start with NPX (Recommended):\n   npx google-slides-mcp auth\n   npx google-slides-mcp status\n   \n📖 Documentation: https://github.com/nitaiaharoni1/google-slides-mcp#readme\n💡 For help: npx google-slides-mcp --help\n'",
+    "release": "npm run build && node dist/release.js",
+    "release:patch": "npm run build && node dist/release.js patch --yes",
+    "release:minor": "npm run build && node dist/release.js minor --yes",
+    "release:major": "npm run build && node dist/release.js major --yes",
+    "release:dry": "npm run build && node dist/release.js --dry-run",
+    "version:check": "echo \"Current version: $(node -p 'require(\"./package.json\").version')\"",
+    "publish:check": "npm run prepublishOnly && npm pack --dry-run",
+    "publish:public": "npm publish --access public"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "npx",
+    "google-slides",
+    "google",
+    "slides",
+    "presentations",
+    "claude",
+    "ai",
+    "googleapis",
+    "oauth2",
+    "presentation-tools",
+    "cli",
+    "open-source",
+    "typescript"
+  ],
+  "author": "Nitai Aharoni <nitaiaharoni1@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitaiaharoni1/google-slides-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nitaiaharoni1/google-slides-mcp/issues"
+  },
+  "homepage": "https://github.com/nitaiaharoni1/google-slides-mcp#readme",
+  "files": [
+    "dist/",
+    ".env.example",
+    "README.md",
+    "LICENSE"
+  ],
+  "preferGlobal": true,
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "dotenv": "^17.2.3",
+    "googleapis": "^144.0.0",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
+    "esbuild": "^0.27.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.7.4",
+    "rimraf": "^6.1.2",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.48.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

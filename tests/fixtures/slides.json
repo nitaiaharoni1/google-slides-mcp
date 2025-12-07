@@ -1,0 +1,62 @@
+{
+  "createSlide": {
+    "replies": [
+      {
+        "createSlide": {
+          "objectId": "new-slide-123"
+        }
+      }
+    ]
+  },
+  "duplicateSlide": {
+    "replies": [
+      {
+        "duplicateObject": {
+          "objectId": "duplicated-slide-123"
+        }
+      }
+    ]
+  },
+  "getSlide": {
+    "objectId": "slide-123",
+    "pageType": "SLIDE",
+    "pageProperties": {
+      "pageBackgroundFill": {
+        "solidFill": {
+          "color": {
+            "rgbColor": {
+              "red": 1.0,
+              "green": 1.0,
+              "blue": 1.0
+            }
+          }
+        }
+      }
+    },
+    "pageElements": [
+      {
+        "objectId": "element-1",
+        "size": {
+          "width": { "magnitude": 1000000, "unit": "EMU" },
+          "height": { "magnitude": 500000, "unit": "EMU" }
+        },
+        "transform": {
+          "scaleX": 1,
+          "scaleY": 1,
+          "translateX": 1000000,
+          "translateY": 1000000,
+          "unit": "EMU"
+        },
+        "shape": {
+          "shapeType": "TEXT_BOX"
+        }
+      }
+    ]
+  },
+  "getThumbnail": {
+    "contentUrl": "https://lh3.googleusercontent.com/test-thumbnail",
+    "width": 800,
+    "height": 450
+  }
+}
+

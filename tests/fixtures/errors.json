@@ -1,0 +1,28 @@
+{
+  "authError": {
+    "error": "invalid_grant",
+    "error_description": "Token has been expired or revoked."
+  },
+  "apiError": {
+    "error": {
+      "code": 404,
+      "message": "Presentation not found: test-pres-404",
+      "status": "NOT_FOUND"
+    }
+  },
+  "permissionError": {
+    "error": {
+      "code": 403,
+      "message": "The caller does not have permission",
+      "status": "PERMISSION_DENIED"
+    }
+  },
+  "invalidRequestError": {
+    "error": {
+      "code": 400,
+      "message": "Invalid request",
+      "status": "INVALID_ARGUMENT"
+    }
+  }
+}
+
