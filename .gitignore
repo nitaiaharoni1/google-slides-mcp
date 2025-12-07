@@ -12,6 +12,11 @@ lerna-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# OAuth tokens (stored in ~/.google-slides-mcp/)
+.google-slides-mcp/
+tokens.json
+*.tokens.json
 /dist
 /node_modules
 .idea
