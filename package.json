@@ -1,6 +1,6 @@
 {
   "name": "mcp-google-slides",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Model Context Protocol server for Google Slides - create, edit, format, and manage presentations with comprehensive slide manipulation tools",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
