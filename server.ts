@@ -292,19 +292,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 // Main server function
 async function main(): Promise<void> {
   try {
-    // Check for required environment variables
+    // Check for authentication methods
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const hasOAuthCredentials = !!(clientId && clientSecret);
+    const hasADC = !!(
+      process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+      process.env.GCLOUD_PROJECT ||
+      process.env.GOOGLE_CLOUD_PROJECT
+    );
 
-    if (!clientId || !clientSecret) {
-      logger.error(
-        "❌ GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables are required"
+    if (!hasOAuthCredentials && !hasADC) {
+      logger.warn(
+        "⚠️  No authentication method configured. The server will start but tools may fail."
+      );
+      logger.info("💡 Authentication options:");
+      logger.info("   1. OAuth2: Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET");
+      logger.info(
+        "   2. ADC: Run 'gcloud auth application-default login --scopes=https://www.googleapis.com/auth/presentations,https://www.googleapis.com/auth/drive.file'"
       );
       logger.info(
-        "💡 Get them from: https://console.cloud.google.com/apis/credentials"
+        "   3. ADC: Set GOOGLE_APPLICATION_CREDENTIALS to service account JSON path"
       );
-      logger.info('💡 Run "google-slides-mcp auth" to set up authentication');
-      process.exit(1);
+    } else if (hasOAuthCredentials) {
+      logger.info("✅ OAuth2 credentials detected");
+      logger.info('💡 Run "google-slides-mcp auth" if you need to authenticate');
+    } else if (hasADC) {
+      logger.info("✅ Application Default Credentials (ADC) detected");
+      logger.info("💡 Using gcloud auth or GOOGLE_APPLICATION_CREDENTIALS");
     }
 
     // Note: We don't initialize the Slides client here anymore
@@ -316,7 +331,6 @@ async function main(): Promise<void> {
     const transport = new StdioServerTransport();
     await server.connect(transport);
     logger.info("🚀 Google Slides MCP Server started successfully");
-    logger.info('💡 Run "google-slides-mcp auth" if you need to authenticate');
   } catch (error) {
     const errorMsg = (error as Error).message;
     logger.error(`❌ Server startup failed: ${errorMsg}`);
@@ -331,6 +345,7 @@ async function main(): Promise<void> {
       logger.info(
         "   3. Ensure redirect URI is set to http://localhost:3000/oauth2callback"
       );
+      logger.info("   4. Or use ADC: Run 'gcloud auth application-default login'");
     }
 
     process.exit(1);

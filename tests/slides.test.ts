@@ -28,6 +28,15 @@ jest.mock("googleapis", () => ({
   },
 }));
 
+// Mock google-auth-library for ADC support
+jest.mock("google-auth-library", () => ({
+  GoogleAuth: jest.fn().mockImplementation(() => ({
+    getClient: jest.fn().mockRejectedValue(new Error("ADC failed")),
+    getProjectId: jest.fn().mockResolvedValue("test-project"),
+  })),
+  OAuth2Client: jest.fn(),
+}));
+
 describe("Slides Client", () => {
   let consoleErrorSpy: jest.SpyInstance;
   let mockSlidesClient: slides_v1.Slides;
@@ -80,7 +89,7 @@ describe("Slides Client", () => {
 
       const { initializeSlidesClient: initClient } = require("../src/slides");
 
-      await expect(initClient()).rejects.toThrow("Token validation failed");
+      await expect(initClient()).rejects.toThrow("All authentication methods failed");
     });
 
     test("should handle initialization errors", async () => {
