@@ -634,3 +634,7 @@ These hooks prevent broken code from being committed or pushed, maintaining high
 ---
 
 **Made with ❤️ for the AI and Google Slides community**
+
+---
+
+Built by [Nitai Aharoni](https://nitaiaharoni.com), who builds AI systems, backends and infrastructure end to end. Available for freelance projects and part-time CTO work: **[nitaiaharoni.com](https://nitaiaharoni.com)**
